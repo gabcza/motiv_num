@@ -1,4 +1,3 @@
-
 #---------------------------------------------------------------------------------------------------------------------
 #---- Info -----
 # Goal: clean and prep of the data from pilot contingency beh. study
@@ -13,6 +12,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tibble) # for the codebook (after use, mark with a hash mark)
+library(stringr)
 
 #---- Load data ----
 data <- read_sav("Contingency+table+%5Bbeh+study+1+--+PILOT%5D_March+14%2C+2024_08.17.sav") # load data with viewing order 14.03
@@ -104,7 +104,7 @@ data <- data %>%
          nfc1 = nfc1_,
          nfc2 = nfc2_,
          nfc3 = nfc3_)
-      
+
 educ_values <- unique(data$educ)
 
 # Print the unique values of the 'educ' variable
@@ -193,21 +193,18 @@ summary(data$ideology) #M = 3.27
 #    num9.cor = case_when(num9 == 27 ~ 1, TRUE ~ 0) # resp = 27 (days) is correct
 #  )
 
-
 data <- data %>%
   mutate(
-    num1.cor = case_when(num1 == 100 ~ 1, TRUE ~ 0),
-    num2.cor = case_when(num2 == 20 ~ 1, TRUE ~ 0), #ok
-    num3.cor = case_when(num3 == 500 ~ 1, TRUE ~ 0), #ok
-    num4.cor = case_when(num4 == 10 ~ 1, TRUE ~ 0), #ok
-    num5.cor = case_when(num5 == 0.1 ~ 1, TRUE ~ 0), #ok
-    num6.cor = case_when(num6_4 == 9 & num6_5 == 19 ~ 1, TRUE ~ 0),
-    num7.cor = case_when(num7 == 4 ~ 1, TRUE ~ 0),
-    num8.cor = case_when(num8 == 25 ~ 1, TRUE ~ 0),
-    num9.cor = case_when(num9 == 27 ~ 1, TRUE ~ 0)
+    num1.cor = case_when(num1 == 100 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0),
+    num2.cor = case_when(num2 == 20 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0), #ok
+    num3.cor = case_when(num3 == 500 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0), #ok
+    num4.cor = case_when(num4 == 10 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0), #ok
+    num5.cor = case_when(num5 == 0.1 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0), #ok
+    num6.cor = case_when(num6_4 == 9 & num6_5 == 19 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0),
+    num7.cor = case_when(num7 == 4 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0),
+    num8.cor = case_when(num8 == 25 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0),
+    num9.cor = case_when(num9 == 27 ~ 1, is.na(num1) ~ NA_real_, TRUE ~ 0)
   )
-
-
 num <- c("num1.cor", "num2.cor", "num3.cor", "num4.cor", "num5.cor", 
          "num6.cor", "num7.cor", "num8.cor", "num9.cor")
 psych::alpha(data[num]) # alpha = .92
@@ -215,7 +212,14 @@ data$num = rowMeans(data[num], na.rm = TRUE)
 hist(data$num) # 1 - easy, rest rather diff
 paste0("Numeracy scoress: M = ", round(mean(data$num, na.rm = TRUE), 2), ", SD = ", round(sd(data$num, na.rm = TRUE), 2))
 #create 0 vs 1 scores
-data <- data %>% mutate(crt01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 NUMERACY score
+data <- data %>% mutate(num01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 NUMERACY score
+
+# Crt scores (last 3 items in numeracy test)
+crt <- c("num7.cor", "num8.cor", "num9.cor")
+data$crt = rowMeans(data[crt], na.rm = TRUE) 
+hist(data$crt) # 1 - easy, rest rather diff
+#create 0 vs 1 scores
+data <- data %>% mutate(crt01 = case_when(crt == 0 ~ 0, crt > 0 ~ 1))# create 0-1 NUMERACY score
 
 #NFC mean
 data$NFC.mean <- rowMeans(data[c("nfc1", "nfc2", "nfc3")], na.rm = TRUE)
@@ -254,6 +258,7 @@ data <- data %>%
     t.easy.hom.sol.order = FL_32_DO_TABLE.EASY.HOM.SOLUTION)
 
 names(data)
+
 #----- remove original ids and qualtrics data ---- 
 # and other not informative vars
 data <- data %>% select(
@@ -271,54 +276,12 @@ data <- data %>% select(
   -FL_21_DO_FL_48,
   -FL_21_DO_FL_49)
 
-
-
-#---- Rescale and grand-mean center vars ----
-
-# rescale vars between 0-1
-data <- data %>% 
-  mutate(
-    across(
-      c(
-        age, educ, 
-        relig,
-        polit.cult3, polit.econ3, polit.lr,
-      ), 
-      .fns = ~scales::rescale(as.numeric(.)),
-      .names = "{.col}_s"
-    )
-  )
-
-
-
-# check vars
-hist(data$age_s)
-plot(data$age, data$age_s)
-data %>% ggplot(aes(polit.lr, polit.lr_s)) + 
-  geom_point() +
-  #geom_jitter() + 
-  geom_smooth(color = "red") + geom_smooth(method = "lm", color = "blue") + theme_classic()
-
-
-# center individual differences
-data <- data %>% 
-  mutate(
-    across(c(
-      age_s, educ_s,
-      relig_s,
-      polit.cult3_s, polit.econ3_s,
-      num), # CRT is already between 0-1
-      .fns = ~c(scale(., center = TRUE, scale = FALSE)),
-      .names = "{.col}_c"))
-# check vars
-hist(data$relig_s_c)
-plot(data$num_c, data$num)
-hist(data$age_s_c)
-
 #---- Save full data data ----
+# all responses in the survey (incl. those who failed attention checks etc)
 write.csv(data,"data contingency beh study pilot full data.csv")
 write.csv2(data,"data contingency beh study pilot full data.csv")
 
+#---------------------------------------------------------------------------------------------------------------------
 #---- Filter data ----
 nrow(data) # N = 220
 
@@ -354,56 +317,97 @@ nrow(data)
 #RT > 300
 data <- data %>% filter (Duration__in_seconds_ >300) #N = 72
 
-#---- save cleaned data----
-data.cleaned <- data
-write.csv(data.cleaned,"data contingency beh study pilot clean data.csv")
-write.csv2(data.cleaned,"data contingency beh study pilot clean data.csv")
+#---- Rescale and grand-mean center vars ----
+# GC: moving rescaled vars after filtering observations out
 
+# rescale vars between 0-1
+data <- data %>% 
+  mutate(
+    across(
+      c(age, educ, 
+        relig,
+        polit.cult3, polit.econ3, polit.lr), 
+      .fns = ~scales::rescale(as.numeric(.)),
+      .names = "{.col}_s"
+    )
+  )
 
+# check vars
+hist(data$age_s)
+plot(data$age, data$age_s)
+data %>% ggplot(aes(polit.lr, polit.lr_s)) + 
+  geom_point() +
+  #geom_jitter() + 
+  geom_smooth(color = "red") + geom_smooth(method = "lm", color = "blue") + theme_classic()
+
+# center individual differences
+data <- data %>% 
+  mutate(
+    across(c(
+      age_s, educ_s,
+      relig_s,
+      polit.cult3_s, polit.econ3_s,
+      num, crt), 
+      .fns = ~c(scale(., center = TRUE, scale = FALSE)),
+      .names = "{.col}_c"))
+# check vars
+hist(data$relig_s_c)
+plot(data$num_c, data$num)
+hist(data$age_s_c)
+
+#---- Save clean data----
+data.clean <- data
+write.csv(data.clean,"data contingency beh study pilot clean data.csv")
+write.csv2(data.clean,"data contingency beh study pilot clean data.csv")
+
+#---------------------------------------------------------------------------------------------------------------------
 #---- Create long dataset ----
-
 # select data for argument evaluation & restructure data
-names(data.cleaned)
+names(data.clean)
+
 # GC: create dataset with version of tables
-data.versions <- data.cleaned %>%
+data.versions <- data.clean %>%
   select(subj.id, table.clim, table.gmo, table.hom) %>% 
   gather(key = "topic", "version", -subj.id) %>%
   separate(topic, c("t", "topic")) %>% select(-t) %>%
   filter(version != "") # keep only cells with data
 
 # create long data
-
-data.long <- data.cleaned %>%
+data.long <- data.clean %>%
   select(subj.id,
          starts_with("t.hard"), starts_with("t.easy")) %>% 
-  select(-ends_with("_First_Click"), -ends_with("_Last_Click"), -ends_with("_Click_Count")) %>%
-  select(-contains("_DO_"), -contains("sol")) %>%  #GC: trzeba kolejność będzie jednak uwzględnić --ok, to dołączam koeljność tabelek
+  select(-ends_with("_First_Click"), -ends_with("_Last_Click"), 
+         -ends_with("_Click_Count")) %>%
+  select(-contains("_DO_"), -contains("sol")) %>% 
   gather(key = "question", value = "resp", -subj.id) %>% #create long format
   mutate(question = str_replace_all(question, "rt_Page_Submit", "rt")) %>%
-  separate(question, into = c("t", "condition", "topic", "question", "version"), sep = "\\.") %>% 
+  separate(question, into = c("t", "condition", "topic", "question", "version"), 
+           sep = "\\.") %>% 
   select(-t, -version) %>%
   filter(!is.na(resp)) %>%
   left_join(data.versions, by = c("subj.id", "topic")) %>%
   spread(question, resp)
 
+# recode levels for condition
+data.long <- data.long %>% 
+  mutate(condition = factor(condition, levels = c("easy", "hard")))
+
 # Print the first few rows of the resulting data frame to check for any issues
 head(data.long)
 
-data.ind <- data.cleaned %>% dplyr::select(subj.id, gender, age_s_c, educ_s_c, ideology,
-                                   num_c, #recoded education = educ now
-                                   starts_with("prior"))
+data.ind <- data.clean %>% 
+  dplyr::select(subj.id, gender, age_s_c, educ_s_c, 
+                ideology,
+                num_c, #recoded education = educ now
+                starts_with("prior"))
 names(data.ind)
-
 
 # add ind diff data 
 data.long <- data.long %>% left_join(data.ind, by = "subj.id") %>%
-  dplyr::select(subj.id, age_s_c, gender, educ_s_c,
-                starts_with("prior"),
+  dplyr::select(subj.id, age_s_c, gender, educ_s_c, starts_with("prior"),
                 everything())
 # remove temp data 
-rm(data.pre.post.long)
-
-
+#rm(data.pre.post.long)
 
 #---- add info on concordance of task version with initial issue position
 # (concordance: version vs. position --> -1 = discordant, 0 = neutral, 1 = concordant)
@@ -411,21 +415,21 @@ data.long <- data.long %>%
   mutate(
     prior.conc = case_when(
       prior.climate.pos == 50 ~ 0, # initial pos neutral
-      version == "s" & prior.climate.pos < 50 ~ -1, # disconcordant with prior
+      version == "s" & prior.climate.pos < 50 ~ -1, # discordant with prior
       version == "s" & prior.climate.pos > 50 ~ 1, # concordant with prior
-      version == "ns" & prior.climate.pos > 50 ~ -1, # disconcordant with prior
+      version == "ns" & prior.climate.pos > 50 ~ -1, # discordant with prior
       version == "ns" & prior.climate.pos < 50 ~ 1,
       prior.gmo.pos == 50 ~ 0, # initial pos neutral
-      version == "s" & prior.gmo.pos < 50 ~ -1, # disconcordant with prior
+      version == "s" & prior.gmo.pos < 50 ~ -1, # discordant with prior
       version == "s" & prior.gmo.pos > 50 ~ 1, # concordant with prior
-      version == "ns" & prior.gmo.pos > 50 ~ -1, # disconcordant with prior
+      version == "ns" & prior.gmo.pos > 50 ~ -1, # discordant with prior
       version == "ns" & prior.gmo.pos < 50 ~ 1, # concordant with prior
       prior.hom.pos == 500 ~ 0, # initial pos neutral
-      #przy homeopatii odwrotnie
+      # homeopathy opposite
       version == "s" & prior.hom.pos < 50 ~ 1, # concordant with prior
-      version == "s" & prior.hom.pos > 50 ~ -1, # disconcordant with prior
+      version == "s" & prior.hom.pos > 50 ~ -1, # discordant with prior
       version == "ns" & prior.hom.pos > 50 ~ 1, # concordant with prior
-      version == "ns" & prior.hom.pos < 50 ~ -1 #disconcordant with prior
+      version == "ns" & prior.hom.pos < 50 ~ -1 #discordant with prior
     ),
     prior.conc = factor(prior.conc, levels = c(-1, 0, 1), labels = c("disc", "neutr", "conc"))
     # arg.side.f = factor(arg.side, levels = c(1, 7), labels = c("against", "pro"))
@@ -438,15 +442,15 @@ summary(as.factor(data.long$prior.conc))
 data.long <- data.long %>% 
   mutate(
     ideology.conc = case_when(
-      topic == "clim" & ideology == 4 ~ 0, # initial pos neutral
+      topic == "clim" & ideology == 4 ~ 0, # ideology middle
       topic == "clim" & version == "s" & ideology < 4 ~ 1, # concordant with ideology (science + L)
-      topic == "clim" & version == "ns" & ideology < 4 ~ - 1, #disconcordant with ideology (no science + L)
-      topic == "clim" & version == "s" & ideology > 4 ~ -1, # disncordant with ideology (science + P)
-      topic == "clim" & version == "ns" & ideology > 4 ~ 1, #concondant with ideology (no science + P)
-      topic == "gmo" & ideology == 4 ~ 0, # initial pos neutral
+      topic == "clim" & version == "ns" & ideology < 4 ~ - 1, #discordant with ideology (no science + L)
+      topic == "clim" & version == "s" & ideology > 4 ~ -1, # discordant with ideology (science + P)
+      topic == "clim" & version == "ns" & ideology > 4 ~ 1, #concordant with ideology (no science + P)
+      topic == "gmo" & ideology == 4 ~ 0, # ideology middle
       topic == "gmo" & version == "s" & ideology < 4 ~ 1, # concordant with ideology
-      topic == "gmo" & version == "ns" & ideology < 4 ~ - 1, #disconcordant with ideology
-      topic == "gmo" & version == "s" & ideology > 4 ~ -1, # disconcordant with ideology
+      topic == "gmo" & version == "ns" & ideology < 4 ~ - 1, #discordant with ideology
+      topic == "gmo" & version == "s" & ideology > 4 ~ -1, # discordant with ideology
       topic == "gmo" & version == "ns" & ideology > 4 ~ 1, #concordant with ideology 
       #przy homeopatii ideologia nie ma znaczenia
       topic == "hom" ~ 0 
@@ -456,9 +460,10 @@ data.long <- data.long %>%
 
 names(data.long)
 
+# add topic for clim vs. gmo (without )
+
 ## recode condition variable
 data.long$condition.binary <- ifelse(data.long$condition == "hard", 1, 0)
-
 data.long %>%
   group_by(condition.binary) %>%
   summarize(count = n()) %>%
@@ -467,9 +472,9 @@ data.long %>%
 data.long$condition.binary <- factor(data.long$condition.binary)
 
 #GC: check resp per person 
-x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
+#x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
 
-#---- save cleaned long data----
-data.long.cleaned <- data.long
-write.csv(data.long.cleaned,"data contingency beh study pilot clean long data.csv")
-write.csv2(data.long.cleaned,"data contingency beh study pilot clean long data.csv")
+#---- Save cleaned long data----
+data.long.clean <- data.long
+write.csv(data.long.clean,"data contingency beh study pilot clean long data.csv")
+write.csv2(data.long.clean,"data contingency beh study pilot clean long data.csv")
