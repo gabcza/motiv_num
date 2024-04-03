@@ -1,6 +1,6 @@
 #---- Info -----
 # Goal: analyze data from contingency beh study 1
-##Q1. What is the accuracy of responding in the contingency table task?
+# Q1. What is the accuracy of responding in the contingency table task?
 #
 # write 07-03-2024 by Iwona
 #--------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ library(lmerTest)
 library(ggeffects)
 options(scipen = 999)
 
-#---- Load, clean, filter and create long format of the data ----
+#---- Load data in a long format ----
 # use the script called 'contingency beh study 01 clean data.R"
 # or saved data
 #data.long <- read.csv(data contingency beh study pilot clean long data.csv")
@@ -25,6 +25,22 @@ data.long$topic <- as.factor(data.long$topic)
 data.long <- data.long %>% 
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
+
+#---- Effects of task difficulty (no concordance) ----
+m0.1 <- lmer(data = data.long,
+             #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+             #data = data.long %>% filter(prior.conc != 0), 
+           resp ~ condition + 
+             order + topic + (1|subj.id)) 
+summary(m0.1)
+
+# add numeracy
+m0.2 <- lmer(data = data.long,
+             #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+             #data = data.long %>% filter(prior.conc != 0), 
+             resp ~ condition * num_c + 
+               order + topic + (1|subj.id)) 
+summary(m0.2)
 
 #---- #Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
@@ -40,7 +56,7 @@ VarCorr(m0.q1.1.ideology) %>%
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
 m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4),
-                         resp ~ 1 +  ideology.conc + 
+                         resp ~ ideology.conc + 
                            topic + order +
                            (1|subj.id))
 summary(m1.q1.1.ideology)
@@ -48,7 +64,7 @@ anova(m1.q1.1.ideology) #ideology.conc neutr sig.
 
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
 m2.q1.2.ideology <- lmer(data = data.long %>% filter(ideology != 4), 
-                         resp ~ 1 + num_c + 
+                         resp ~ num_c + 
                            topic + order + (1|subj.id))
 summary(m2.q1.2.ideology)
 anova(m2.q1.2.ideology)
@@ -62,7 +78,7 @@ m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4),
                           topic + order + (1|subj.id))
 summary(m3.q1.3.ideology)
 anova(m3.q1.3.ideology)
-#m3.q1.3.ideology  %>% ggemmeans(terms = c("ideology.conc", "num_c")) %>% plot()
+#m3.q1.3.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc")) %>% plot()
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 

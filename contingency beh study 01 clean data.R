@@ -460,8 +460,6 @@ data.long <- data.long %>%
 
 names(data.long)
 
-# add topic for clim vs. gmo (without )
-
 ## recode condition variable
 data.long$condition.binary <- ifelse(data.long$condition == "hard", 1, 0)
 data.long %>%
@@ -470,6 +468,10 @@ data.long %>%
   print()
 #easy = 102/3 = 34 ok, hard =114/3 = 38 ok
 data.long$condition.binary <- factor(data.long$condition.binary)
+
+# GC: tu chyba trzeba dodać wyliczanie wskaźnika effort? (jeśli diff i eff korelują wysoko)
+# (dodaję)
+cor(data.long$eff, data.long$diff) # 
 
 #GC: check resp per person 
 #x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
