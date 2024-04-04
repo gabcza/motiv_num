@@ -470,8 +470,14 @@ data.long %>%
 data.long$condition.binary <- factor(data.long$condition.binary)
 
 # GC: tu chyba trzeba dodać wyliczanie wskaźnika effort? (jeśli diff i eff korelują wysoko)
+#ID: tak, to mi ucięło podczas przenoszenia części skryptu z długim formatem do pliku
+# z czyszczeniem - jest zmienna eff.index w kolejnych skryptach, która tu powinna być zrobiona
 # (dodaję)
-cor(data.long$eff, data.long$diff) # 
+cor(data.long$eff, data.long$diff) # .86
+#effort index
+eff.index <- mean(c(data.long$eff, data.long$diff))
+print(paste("eff.index:", eff.index))
+
 
 #GC: check resp per person 
 #x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
