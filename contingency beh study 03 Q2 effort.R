@@ -25,7 +25,7 @@ options(scipen = 999)
 
 #---- Concordance with ideology----
 # null model
-m0.q2.1.ef.ideology <- lmer(data = data.long, # GC: tu do dodania ta ideologia != 4 (?)
+m0.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),# GC: tu do dodania ta ideologia != 4 (?)
                        eff.index ~ 1 + (1|subj.id)) 
 summary(m0.q2.1.ef.ideology)
 VarCorr(m0.q2.1.ef.ideology) %>% # get variance components (these are SDs) 
@@ -34,7 +34,7 @@ VarCorr(m0.q2.1.ef.ideology) %>% # get variance components (these are SDs)
   dplyr::select(grp, icc) #.71 due to subj
 
 # add argument ideology concordance
-m1.q2.1.ef.ideology <- lmer(data = data.long, 
+m1.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index  ~ 1 + ideology.conc + 
                               topic + order +
                             (1|subj.id)) 
@@ -42,7 +42,7 @@ summary(m1.q2.1.ef.ideology)
 anova(m1.q2.1.ef.ideology) #order, topic sig
 
 # add difficulty      
-m2.q2.1.ef.ideology <- lmer(data = data.long, 
+m2.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                   eff.index ~ 1 + ideology.conc + condition.binary + topic +
                   order + (1|subj.id)) 
 #fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
@@ -52,7 +52,7 @@ m2.q2.1.ef.ideology %>% ggemmeans(terms = "ideology.conc") %>% plot()
 m2.q2.1.ef.ideology %>% ggemmeans(terms = "condition.binary") %>% plot()
 
 #add interaction ideology concordance * difficulty  
-m3.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology.conc != "neutr"), 
+m3.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
           # GC: tu nie wiem dlaczego jest filtrowany neutralny -- wtedy wyrzucony będzie
           # cały dopic homeo?
           eff.index ~ ideology.conc * condition.binary + 
@@ -66,7 +66,7 @@ m3.q2.1.ef.ideology  %>% ggemmeans(terms = c("ideology.conc", "condition.binary"
 
 #Analysis: We will add cognitive sophistication as main 
 #effect and interaction with concordance as well as difficult
-m4.q2.2.ef.ideology <- lmer(data = data.long,
+m4.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index ~ num_c +
                             topic + order + (1|subj.id))
 
@@ -74,7 +74,7 @@ summary(m4.q2.2.ef.ideology) #numeracy istotne (order też)
 anova(m4.q2.2.ef.ideology)
 
 #+ int. with ideology
-m5.q2.2.ef.ideology <- lmer(data = data.long,
+m5.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index ~ ideology.conc * condition.binary * num_c + 
                               topic + order + (1|subj.id))
 summary(m5.q2.2.ef.ideology) #order, numeracy istotne
