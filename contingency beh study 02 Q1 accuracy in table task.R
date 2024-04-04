@@ -30,7 +30,7 @@ levels(data.long$topic)
 m0.1 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
-           resp ~ condition + 
+           resp ~ condition.binary + 
              order + topic + (1|subj.id)) 
 summary(m0.1)
 
@@ -38,7 +38,7 @@ summary(m0.1)
 m0.2 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
-             resp ~ condition * num_c + 
+             resp ~ condition.binary * num_c + 
                order + topic + (1|subj.id)) 
 summary(m0.2)
 
@@ -83,40 +83,13 @@ anova(m3.q1.3.ideology)
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 
 m4.q1.4.ideology <-lmer(data = data.long %>% filter(ideology != 4),
-                        resp ~ ideology.conc * num_c * condition + 
+                        resp ~ ideology.conc * num_c * condition.binary + 
                           topic + order + (1|subj.id))
 #fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 summary(m4.q1.4.ideology) #ideology.conc and interaction sig
 anova(m4.q1.4.ideology)
 #m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition")) %>% 
 #  plot()
-
-# +topic interaction
-m5.q1.5.ideology <-lmer(data = data.long %>% filter(ideology != 4),
-                        resp ~ ideology.conc * num_c * condition * topic + 
-                          order + (1|subj.id))
-#fixed-effect model matrix is rank deficient so dropping 5 columns / coefficients
-summary(m5.q1.5.ideology)
-anova(m5.q1.5.ideology) #topic gmo, ideology.concneutr and int. sig
-
-#polit cult +  difficulty interaction
-# GC: tu nie wiem co jest dodawane w tym modelu? To nie jest to samo co w modelu 
-# m4.q1.4.ideology
-m1.q1.6 <-lmer(data = data.long %>% filter(ideology != 4),
-               resp ~ ideology.conc * num_c * condition + 
-                 topic + order + (1|subj.id))
-#fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
-summary(m1.q1.6)
-anova(m1.q1.6)
-
-#polit cult +  difficulty interaction + topic interaction
-# GC: j.w. - co tu jest nowego?
-m1.q1.7 <-lmer(data = data.long %>% filter(ideology != 4), 
-               resp ~ ideology.conc * num_c * condition * topic + 
-                 order + (1|subj.id))
-#fixed-effect model matrix is rank deficient so dropping 5 columns / coefficients
-summary(m1.q1.7)
-anova(m1.q1.7)
 
 #---- Concordance with prior position ----
 # null model
