@@ -20,6 +20,12 @@ options(scipen = 999)
 # or saved data
 #data.long <- read.csv(data contingency beh study pilot clean long data.csv")
 
+#topic
+data.long$topic <- as.factor(data.long$topic)
+data.long <- data.long %>% 
+  mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
+levels(data.long$topic)
+
 #---- Q2.1. Do people invest more effort when correct response is discordant ----
 #with their ideology/priors and when the task is easy vs. difficult? ----
 
@@ -31,7 +37,7 @@ summary(m0.q2.1.ef.ideology)
 VarCorr(m0.q2.1.ef.ideology) %>% # get variance components (these are SDs) 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc) #.71 due to subj
+  dplyr::select(grp, icc) # due to subj = 
 
 # add argument ideology concordance
 m1.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
@@ -39,13 +45,13 @@ m1.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                               topic + order +
                             (1|subj.id)) 
 summary(m1.q2.1.ef.ideology)
-anova(m1.q2.1.ef.ideology) #order, topic sig
+anova(m1.q2.1.ef.ideology) 
 
 # add difficulty      
 m2.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                   eff.index ~ 1 + ideology.conc + condition.binary + topic +
                   order + (1|subj.id)) 
-#fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
+
 summary(m2.q2.1.ef.ideology)
 anova(m3.q2.1.ef.ideology)
 m2.q2.1.ef.ideology %>% ggemmeans(terms = "ideology.conc") %>% plot()
@@ -70,16 +76,17 @@ m4.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index ~ num_c +
                             topic + order + (1|subj.id))
 
-summary(m4.q2.2.ef.ideology) #numeracy istotne (order też)
+summary(m4.q2.2.ef.ideology) 
 anova(m4.q2.2.ef.ideology)
 
 #+ int. with ideology
 m5.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index ~ ideology.conc * condition.binary * num_c + 
                               topic + order + (1|subj.id))
-summary(m5.q2.2.ef.ideology) #order, numeracy istotne
+summary(m5.q2.2.ef.ideology) 
 print(x, correlation = TRUE) # GC: tu powinno być x? (ale nie wiem co to robi)
 anova(m5.q2.2.ef.ideology)
+m5.q2.2.ef.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
 
 #---- Concordance with priors ----
 #----Q2.1. Do people invest more effort when correct response is discordant 
@@ -91,14 +98,14 @@ summary(m0.q2.1.ef.prior)
 VarCorr(m0.q2.1.ef.prior) %>% # get variance components (these are SDs)
   as_tibble() %>%
   mutate(icc = vcov / sum(vcov)) %>%
-  dplyr::select(grp, icc) #subj: .71
+  dplyr::select(grp, icc) #subj: 
 
 # add argument ideology concordance
 m1.q2.1.ef.prior <- lmer(data = data.long %>% filter(prior.conc  != "neutr"),
                          eff.index  ~ prior.conc + 
                            topic + order + (1|subj.id))
 summary(m1.q2.1.ef.prior)
-anova(m1.q2.1.ef.prior) #order
+anova(m1.q2.1.ef.prior) 
 
 # add difficulty
 m2.q2.1.ef.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
@@ -127,17 +134,17 @@ m4.q2.2.ef.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                          eff.index ~ num_c +
                          topic + order + (1|subj.id))
                            
-summary(m4.q2.2.ef.prior) #order, numeracy istotne
+summary(m4.q2.2.ef.prior) 
 anova(m4.q2.2.ef.prior)
 
 # interaction priors x condition x numeracy
 m5.q2.2.ef.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                          eff.index ~ prior.conc * condition.binary * num_c + 
                            topic + order + (1|subj.id))
-summary(m5.q2.2.ef.prior) #order, numeracy istotne
+summary(m5.q2.2.ef.prior) 
 anova(m5.q2.2.ef.prior)
-m5.q2.2.ef.prior  %>% ggemmeans(terms = c("prior.conc", "condition.binary", "num_c")) %>% plot()
-#przy większym num, mniejszy effort
+m5.q2.2.ef.prior  %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% plot()
+
 
 #+ add rt as a measure of effort
 # GC: to już na razie zostamy - na właściwych danych podmienimy wskaźnik effort na rt 

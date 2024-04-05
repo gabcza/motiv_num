@@ -19,6 +19,13 @@ options(scipen = 999)
 # or saved data
 #data.long <- read.csv(data contingency beh study pilot clean long data.csv")
 
+
+#topic
+data.long$topic <- as.factor(data.long$topic)
+data.long <- data.long %>% 
+  mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
+levels(data.long$topic)
+
 #---- Q3a. Does effort investment lead to more accurate responding? Does it depend on concordance?----
 #---- Concordance with priors----
 # main effect of effort on accuracy of responding
@@ -34,15 +41,15 @@ m1.q3.ef_acc.prior %>%
 #add interaction with concordance
 m2.q3.ef_acc.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
                            resp ~ eff.index * prior.conc +
-                             topic + order + (1|subj.id)) #boundary (singular) fit:
+                             topic + order + (1|subj.id)) 
 summary(m2.q3.ef_acc.prior)
-anova(m2.q3.ef_acc.prior) #prior istotny, interakcja trochę też
+anova(m2.q3.ef_acc.prior) 
 m2.q3.ef_acc.prior  %>% ggemmeans(terms = c("prior.conc", "eff.index")) %>% plot()
 
 #+difficulty
 m3.q3.ef_acc.prior<- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
                           resp ~ eff.index * prior.conc * condition.binary +
-                            topic + order + (1|subj.id)) #boundary (singular) fit + rescaling
+                            topic + order + (1|subj.id)) 
 summary(m3.q3.ef_acc.prior)
 anova(m3.q3.ef_acc.prior) 
 m3.q3.ef_acc.prior  %>% ggemmeans(terms = c("prior.conc", "eff.index", "condition.binary")) %>% plot()
@@ -53,7 +60,7 @@ m3.q3.ef_acc.prior  %>% ggemmeans(terms = c("prior.conc", "eff.index", "conditio
 m4.q3.ef_acc.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
                            resp ~ 1 +  eff.index + prior.conc + condition.binary + 
                            eff.index*prior.conc*condition.binary:num_c +
-                           topic + order + (1|subj.id)) #boundary (singular) fit + rescaling
+                           topic + order + (1|subj.id)) 
 summary(m4.q3.ef_acc.prior)
 anova(m4.q3.ef_acc.prior) #diff
 
@@ -72,7 +79,7 @@ m2.q3.ef_acc.ideology %>%
 m2.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                               resp ~ eff.index * ideology.conc +
                               topic + order + (1|subj.id)) 
-#boundary (singular) fit: see help('isSingular')
+
 summary(m1.q3.ef_acc.ideology)
 anova(m1.q3.ef_acc.ideology) 
 m2.q3.ef_acc.ideology  %>% ggemmeans(terms = c("ideology.conc", "eff.index")) %>% plot()
@@ -82,7 +89,7 @@ m3.q3.ef_acc.ideology<- lmer(data = data.long %>% filter(ideology != 4),
                              resp ~ eff.index * ideology.conc * condition.binary +
                                topic + order + (1|subj.id)) 
 summary(m3.q3.ef_acc.ideology) 
-anova(m3.q3.ef_acc.ideology) #effort sig
+anova(m3.q3.ef_acc.ideology) 
 m2.q3.ef_acc.ideology  %>% ggemmeans(terms = c("ideology.conc", "eff.index", "diff")) %>% plot()
 
 #Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
@@ -91,7 +98,7 @@ m2.q3.ef_acc.ideology  %>% ggemmeans(terms = c("ideology.conc", "eff.index", "di
 m4.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                               resp ~ eff.index * ideology.conc * condition.binary * num_c +
                               topic + order + (1|subj.id)) 
-#boundary (singular) fit: see help('isSingular')
+
 summary(m4.q3.ef_acc.ideology)
 anova(m4.q3.ef_acc.ideology)
 

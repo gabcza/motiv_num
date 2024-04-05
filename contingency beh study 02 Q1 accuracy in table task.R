@@ -27,20 +27,20 @@ data.long <- data.long %>%
 levels(data.long$topic)
 
 #---- Effects of task difficulty (no concordance) ----
-m0.1 <- lmer(data = data.long,
+m0.q1.1 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
            resp ~ condition.binary + 
              order + topic + (1|subj.id)) 
-summary(m0.1)
+summary(m0.g1.1)
 
 # add numeracy
-m0.2 <- lmer(data = data.long,
+m0.g1.2 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
              resp ~ condition.binary * num_c + 
                order + topic + (1|subj.id)) 
-summary(m0.2)
+summary(m0.q1.2)
 
 #---- #Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
