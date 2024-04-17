@@ -11,7 +11,7 @@ library(stringr)
 data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+17%2C+2024_03.08.sav") # load data with viewing order 14.03
 #summary(data) 
 nrow(data) # N = 508
-glimpse(data) ``
+glimpse(data) 
 
 # summarize correct responses in attention checks -- we have three in this study
 ncol(data %>% dplyr::select(., starts_with("att."))) #3
