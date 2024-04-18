@@ -20,21 +20,13 @@ data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+16%2C+2024_04.37.sav
 
 # fragment z 17.04 - sprawdzanie kwot ----
 data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+17%2C+2024_03.08.sav") #17.04
+data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+18%2C+2024_12.39.sav") #18.04
 
-data <- data %>%
-  mutate(
-    att.check1.cor = case_when(att.check.birthday == 1 ~ 1, TRUE ~ 0),
-    att.check2.cor = case_when(att.memory1 == 4 ~ 1, TRUE ~ 0),
-    att.check3.cor = case_when(tolower(att.memory2) == "kot" ~ 1, TRUE ~ 0)
-  )
-
-data <- data %>%
-  mutate(
-    total_att_check = att.check1.cor + att.check2.cor + att.check3.cor
-  ) %>%
-  filter(total_att_check == 3)
+#odfitruj osoby, które nie ukończyły (nie odpowiedziały na ostatnie obowiązkowe pytanie)
+data <- data %>% filter(!is.na(guessing.check))
 
 
+#check age group
 data$age.group <- case_when(
   data$age >= 18 & data$age <= 29 ~ "18-29",
   data$age >= 30 & data$age <= 39 ~ "30-39",
@@ -47,6 +39,10 @@ data$age.group <- case_when(
 # Count participants in each age group
 age_counts <- table(data$age.group)
 print(age_counts)
+
+#check gender group
+gender_counts <- table(data$gender)
+print(gender_counts)
 
 #-------------------------------------------
 #summary(data) 
