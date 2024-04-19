@@ -9,9 +9,11 @@ library(stringr)
 
 #---- Load data ----
 data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+17%2C+2024_03.08.sav") # load data with viewing order 14.03
-data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+19%2C+2024_02.26.sav") # data with vieving order 19.04
+data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+19%2C+2024_02.26.sav") # data with viewing order 19.04
+data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+19%2C+2024_08.12.sav") # data with viewing order 19.04 time: 16:00
+
 #summary(data) 
-nrow(data) # N = 391
+nrow(data) # N = 862
 glimpse(data) 
 
 # summarize correct responses in attention checks -- we have three in this study
@@ -26,12 +28,12 @@ data <- data %>%
 
 data <- data %>%
   mutate(total_att_check = att.check1.cor + att.check2.cor + att.check3.cor) %>%
-  filter(total_att_check == 3) #N = 363
+  filter(total_att_check == 3) #N = 531
 
 summary(as.factor(data$instruction.check))
 
 # odfitruj osoby, które nie ukończyły (nie odpowiedziały na ostatnie obowiązkowe pytanie)
-data <- data %>% filter(!is.na(guessing.check))
+data <- data %>% filter(!is.na(guessing.check)) #N = 401 
 
 # demographics
 summary(as.factor(data$gender))
