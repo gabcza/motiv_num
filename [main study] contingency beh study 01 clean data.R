@@ -15,38 +15,10 @@ library(tibble) # for the codebook (after use, mark with a hash mark)
 library(stringr)
 
 #---- Load data ----
-data <- read_sav("Contingency+table+%5Bbeh+study+1+--+PILOT%5D_March+14%2C+2024_08.17.sav") # load data with viewing order 14.03
-data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+16%2C+2024_04.37.sav") #16.04
+data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+19%2C+2024_09.09.sav") # data with viewing order 19.04 time: 16:00
 
-# fragment z 17.04 - sprawdzanie kwot ----
-data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+17%2C+2024_03.08.sav") #17.04
-data <- read_sav("Contingency+table+%5Bbeh+study+1%5D_April+18%2C+2024_12.39.sav") #18.04
-
-#odfitruj osoby, które nie ukończyły (nie odpowiedziały na ostatnie obowiązkowe pytanie)
-data <- data %>% filter(!is.na(guessing.check))
-
-
-#check age group
-data$age.group <- case_when(
-  data$age >= 18 & data$age <= 29 ~ "18-29",
-  data$age >= 30 & data$age <= 39 ~ "30-39",
-  data$age >= 40 & data$age <= 49 ~ "40-49",
-  data$age >= 50 & data$age <= 59 ~ "50-59",
-  data$age >= 60 ~ "60+",
-  TRUE ~ NA_character_
-)
-
-# Count participants in each age group
-age_counts <- table(data$age.group)
-print(age_counts)
-
-#check gender group
-gender_counts <- table(data$gender)
-print(gender_counts)
-
-#-------------------------------------------
 #summary(data) 
-nrow(data) # N = 117
+nrow(data) # N = 865
 glimpse(data) 
 
 #---- Get codebook [RUN ONCE; DONE] ----
@@ -130,7 +102,6 @@ data <- data %>%
          t.easy.hom.diff = t.easy.hom.diff_1,
          t.easy.hom.frustr = t.easy.hom.frustr_1,
          t.easy.hom.percc = t.easy.hom.percc_1,
-         #nfc1 = nfc1_,
          nfc2 = nfc2_,
          nfc3 = nfc3_)
 
@@ -141,10 +112,6 @@ names(data)
 # Print the unique values of the 'educ' variable
 print(educ_values)
 #----- recode demographic data ----
-#educ is ok
-#educ_values <- unique(data$educ)
-#print(educ_values)
-
 data <- data %>%
   mutate(
     polit.lr = case_when(polit.lr <= 7 ~ polit.lr,
@@ -163,7 +130,7 @@ data <- data %>%
                                  polit.party == 3 ~ "3. The Third Way", # 3 = Trzecia Droga
                                  polit.party == 4 ~ "4. Law & Justice", # 4 = Prawo i Sprawiedliwość
                                  polit.party == 5 ~ "5. Conf. Liberty & Ind.",  # 5 = Konfederacja Wolność i Niepodległość (Konfederacja, KORWiN, Ruch Narodowy))
-                                 polit.party == 6 ~ "6. Sovereign Poland", # 6 = Suwerenna Polska
+                                 #polit.party == 6 ~ "6. Sovereign Poland", # 6 = Suwerenna Polska
                                  polit.party == 97 |  polit.party == 98 |  polit.party == 99 ~ "IDK & Other"), # 97 = Inna (Jaka?), 98 = Nie wiem, 99 = Nie głosował(a)bym
     # ideology
     # Left vs. Right
@@ -195,10 +162,10 @@ data$gay.pos.reversed <- 8 - data$gay.pos
 hist(data$immigr.pos.reversed)
 hist(data$gay.pos.reversed)
 ideology <- c("polit.cult", "immigr.pos.reversed", "gay.pos.reversed")
-psych::alpha(data[ideology]) # alpha = .76 (we can use it as a measure of ideology)
+psych::alpha(data[ideology]) #std alpha = .70/raw = .69 (we can use it as a measure of ideology)
 data$ideology <- rowMeans(data[c("polit.cult", "immigr.pos.reversed", "gay.pos.reversed")], na.rm = TRUE)
 hist(data$ideology)
-summary(data$ideology) #M = 4.32
+summary(data$ideology) #M = 4.47
 #----- create indices of ind. differences ----
 # num sum of correct resp
 # nfc mean
@@ -214,18 +181,19 @@ data <- data %>%
     num5.cor = case_when(num5 == 100 ~ 1, TRUE ~ 0), # resp = 100 (people) is correct
     num6.cor = case_when(num6_4 == 9 & num6_5 == 19 ~ 1,
                          TRUE ~ 0),# resp = 9/19 is correct
-    num7.cor = case_when(num7 == 4 ~ 1, TRUE ~ 0), # resp = 4 (days) is correct
-    num8.cor = case_when(num8 == 25 ~ 1, TRUE ~ 0), # resp = 25 (groszy) is correct
-    num9.cor = case_when(num9 == 27 ~ 1, TRUE ~ 0) # resp = 27 (days) is correct
+    num7.cor = case_when(num7 == 4 ~ 1, TRUE ~ 0), # resp = 4 (y.o) is correct
+    num8.cor = case_when(num8 == 10 ~ 1, TRUE ~ 0), # resp = 10 (sec) is correct
+    num9.cor = case_when(num9 == 39 ~ 1, TRUE ~ 0) # resp = 39 (days) is correct
   )
 
 
 num <- c("num1.cor", "num2.cor", "num3.cor", "num4.cor", "num5.cor", 
          "num6.cor", "num7.cor", "num8.cor", "num9.cor")
-psych::alpha(data[num]) # alpha = .8
+psych::alpha(data[num]) #raw alpha = .86/ std alpha = .85
 data$num = rowMeans(data[num], na.rm = TRUE) 
 hist(data$num) # 1 - easy, rest rather diff
 paste0("Numeracy scoress: M = ", round(mean(data$num, na.rm = TRUE), 2), ", SD = ", round(sd(data$num, na.rm = TRUE), 2))
+#M = 0.2, SD = 0.27
 #create 0 vs 1 scores
 data <- data %>% mutate(num01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 NUMERACY score
 
@@ -244,33 +212,33 @@ hist(data$NFC.mean)
 data %>% select(starts_with("FL_")) %>% names() # show vars coding order 
 # those that are important for us (coding the vars of tables with topic (clim, gmo, hom) and 
 #their solution 
-
-# "FL_18_DO_FL_54"                    "FL_18_DO_FL_55"                   
-# "FL_19_DO_FL_52"                    "FL_19_DO_FL_53"                   
-# "FL_20_DO_FL_50"                    "FL_20_DO_FL_51"                   
-# "FL_21_DO_FL_48"                    "FL_21_DO_FL_49"                   
-# "FL_44_DO_TABLE.HARD.CLIM"          "FL_44_DO_TABLE.HARD.GMO"          
-# "FL_44_DO_TABLE.HARD.HOM"           "FL_40_DO_TABLE.EASY.CLIM"         
-# "FL_40_DO_TABLE.EASY.GMO"           "FL_40_DO_TABLE.EASY.HOM"          
-# "FL_36_DO_TABLE.HARD.CLIM.SOLUTION" "FL_36_DO_TABLE.HARD.GMO.SOLUTION" 
-# "FL_36_DO_TABLE.HARD.HOM.SOLUTION"  "FL_32_DO_TABLE.EASY.CLIM.SOLUTION"
-# "FL_32_DO_TABLE.EASY.GMO.SOLUTION"  "FL_32_DO_TABLE.EASY.HOM.SOLUTION" 
+# "FL_74_DO_FL_75"                    "FL_74_DO_PRIOR.BELIEFS.GMO"        "FL_74_DO_PRIOR.BELIEFS.HOM"       
+# "FL_16_DO_FL_68"                    "FL_16_DO_FL_69"                    "FL_17_DO_FL_66"                   
+# "FL_17_DO_FL_67"                    "FL_18_DO_FL_64"                    "FL_18_DO_FL_65"                   
+# "FL_19_DO_FL_62"                    "FL_19_DO_FL_63"                    "FL_58_DO_TABLE.HARD.CLIM"         
+# "FL_58_DO_TABLE.HARD.GMO"           "FL_58_DO_TABLE.HARD.HOM"           "FL_54_DO_TABLE.EASY.CLIM"         
+# "FL_54_DO_TABLE.EASY.GMO"           "FL_54_DO_TABLE.EASY.HOM"           "FL_50_DO_TABLE.HARD.CLIM.SOLUTION"
+# "FL_50_DO_TABLE.HARD.GMO.SOLUTION"  "FL_50_DO_TABLE.HARD.HOM.SOLUTION"  "FL_46_DO_TABLE.EASY.CLIM.SOLUTION"
+# "FL_46_DO_TABLE.EASY.GMO.SOLUTION"  "FL_46_DO_TABLE.EASY.HOM.SOLUTION"  "FL_33_DO_HOMEO.ARG.1"             
+# "FL_33_DO_HOMEO.ARG.2"              "FL_33_DO_HOMEO.ARG.3"              "FL_33_DO_HOMEO.ARG.4"             
+# "FL_33_DO_HOMEO.ARG.5"              "FL_33_DO_HOMEO.ARG.6"              "FL_33_DO_HOMEO.ARG.7"             
+# "FL_33_DO_HOMEO.ARG.8"              "FL_33_DO_HOMEO.ARG.9"              "FL_33_DO_HOMEO.ARG.10"
 
 
 data <- data %>% 
   rename(
-    t.hard.clim.order = FL_44_DO_TABLE.HARD.CLIM,
-    t.hard.gmo.order = FL_44_DO_TABLE.HARD.GMO,
-    t.hard.hom.order = FL_44_DO_TABLE.HARD.HOM,
-    t.easy.clim.order = FL_40_DO_TABLE.EASY.CLIM,
-    t.easy.gmo.order = FL_40_DO_TABLE.EASY.GMO,
-    t.easy.hom.order = FL_40_DO_TABLE.EASY.HOM,
-    t.hard.clim.sol.order = FL_36_DO_TABLE.HARD.CLIM.SOLUTION,
-    t.hard.gmo.sol.order = FL_36_DO_TABLE.HARD.GMO.SOLUTION,
-    t.hard.hom.sol.order = FL_36_DO_TABLE.HARD.HOM.SOLUTION,
-    t.easy.clim.sol.order = FL_32_DO_TABLE.EASY.CLIM.SOLUTION,
-    t.easy.gmo.sol.order = FL_32_DO_TABLE.EASY.GMO.SOLUTION,
-    t.easy.hom.sol.order = FL_32_DO_TABLE.EASY.HOM.SOLUTION)
+    t.hard.clim.order = FL_58_DO_TABLE.HARD.CLIM,
+    t.hard.gmo.order = FL_58_DO_TABLE.HARD.GMO,
+    t.hard.hom.order = FL_58_DO_TABLE.HARD.HOM,
+    t.easy.clim.order = FL_54_DO_TABLE.EASY.CLIM,
+    t.easy.gmo.order = FL_54_DO_TABLE.EASY.GMO,
+    t.easy.hom.order = FL_54_DO_TABLE.EASY.HOM,
+    t.hard.clim.sol.order = FL_50_DO_TABLE.HARD.CLIM.SOLUTION,
+    t.hard.gmo.sol.order = FL_50_DO_TABLE.HARD.GMO.SOLUTION,
+    t.hard.hom.sol.order = FL_50_DO_TABLE.HARD.HOM.SOLUTION,
+    t.easy.clim.sol.order = FL_46_DO_TABLE.EASY.CLIM.SOLUTION,
+    t.easy.gmo.sol.order = FL_46_DO_TABLE.EASY.GMO.SOLUTION,
+    t.easy.hom.sol.order = FL_46_DO_TABLE.EASY.HOM.SOLUTION)
 
 names(data)
 
@@ -282,14 +250,20 @@ data <- data %>% select(
   -StartDate, -EndDate, -Finished, 
   -DistributionChannel, #-Q_RecaptchaScore,
   -UserLanguage,
-  -FL_18_DO_FL_54,
-  -FL_18_DO_FL_55,
-  -FL_19_DO_FL_52,                    
-  -FL_19_DO_FL_53,                   
-  -FL_20_DO_FL_50,
-  -FL_20_DO_FL_51,                   
-  -FL_21_DO_FL_48,
-  -FL_21_DO_FL_49)
+  -puser,
+  -pproject,
+  -FL_74_DO_FL_75,
+  -FL_16_DO_FL_68,
+  -FL_17_DO_FL_67,                    
+  -FL_16_DO_FL_69,                   
+  -FL_18_DO_FL_64,
+  -FL_17_DO_FL_66,                   
+  -FL_18_DO_FL_65)
+
+# "FL_74_DO_FL_75"                    "FL_74_DO_PRIOR.BELIEFS.GMO"        "FL_74_DO_PRIOR.BELIEFS.HOM"       
+# "FL_16_DO_FL_68"                    "FL_16_DO_FL_69"                    "FL_17_DO_FL_66"                   
+# "FL_17_DO_FL_67"                    "FL_18_DO_FL_64"                    "FL_18_DO_FL_65"                   
+
 
 #---- Save full data data ----
 # all responses in the survey (incl. those who failed attention checks etc)
@@ -298,7 +272,7 @@ write.csv2(data,"data contingency beh study pilot full data.csv")
 
 #---------------------------------------------------------------------------------------------------------------------
 #---- Filter data ----
-nrow(data) # N = 117
+nrow(data) # N = 865
 
 ## remove people who failed att chceks
 #att.check.birthday - correct ans = 1   
@@ -315,7 +289,7 @@ data <- data %>%
   mutate(
     total_att_check = att.check1.cor + att.check2.cor + att.check3.cor
   ) %>%
-  filter(total_att_check == 3) #N = 87
+  filter(total_att_check == 3) #N = 532
 
 #Remove the 'total_att_check' column if no longer needed
 data <- select(data, -total_att_check)
@@ -327,10 +301,10 @@ data <- select(data, -total_att_check)
 
 #remove people who failed instruction check
 data <- data %>% filter(instruction.check == 1)
-nrow(data) #67
+nrow(data) #372
 
 #RT > 300
-data <- data %>% filter (Duration__in_seconds_ >300) #N = 72
+data <- data %>% filter (Duration__in_seconds_ >300) #N = 369
 
 #---- Rescale and grand-mean center vars ----
 # GC: moving rescaled vars after filtering observations out
@@ -360,13 +334,12 @@ data <- data %>%
   mutate(
     across(c(
       age_s, educ_s,
-      #relig_s,
       polit.cult3_s, polit.econ3_s,
       num, crt), 
       .fns = ~c(scale(., center = TRUE, scale = FALSE)),
       .names = "{.col}_c"))
 # check vars
-#hist(data$relig_s_c)
+
 plot(data$num_c, data$num)
 hist(data$age_s_c)
 
@@ -481,14 +454,14 @@ data.long %>%
   group_by(condition.binary) %>%
   summarize(count = n()) %>%
   print()
-#easy = 102/3 = 34 ok, hard =114/3 = 38 ok
+#easy = 546/3 = 182 ok, hard =561/3 = 187 ok
 data.long$condition.binary <- factor(data.long$condition.binary)
 
 # GC: tu chyba trzeba dodać wyliczanie wskaźnika effort? (jeśli diff i eff korelują wysoko)
 #ID: tak, to mi ucięło podczas przenoszenia części skryptu z długim formatem do pliku
 # z czyszczeniem - jest zmienna eff.index w kolejnych skryptach, która tu powinna być zrobiona
 # (dodaję)
-cor(data.long$eff, data.long$diff) # .76
+cor(data.long$eff, data.long$diff) # .78
 #effort index
 eff.index <- mean(c(data.long$eff, data.long$diff))
 print(paste("eff.index:", eff.index))

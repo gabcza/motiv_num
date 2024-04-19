@@ -32,12 +32,24 @@ levels(data.long$topic)
 #---- Concordance with ideology----
 # null model
 m0.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),# GC: tu do dodania ta ideologia != 4 (?)
-                       eff.index ~ 1 + (1|subj.id)) 
+                            eff.index ~ 1 + (1|subj.id)) 
 summary(m0.q2.1.ef.ideology)
 VarCorr(m0.q2.1.ef.ideology) %>% # get variance components (these are SDs) 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
   dplyr::select(grp, icc) # due to subj = 
+
+
+#Error in model.frame.default(data = data.long %>% filter(ideology != 4),
+#variable lengths differ (found for 'subj.id')
+#filtered_data <- data.long %>% filter(ideology != 4)
+#str(filtered_data)
+#filtered_data <- na.omit(filtered_data)
+#m0.q2.1.ef.ideology <- lmer(eff.index ~ 1 + (1|subj.id), data = filtered_data)
+#length(filtered_data$subj.id)
+
+
+
 
 # add argument ideology concordance
 m1.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
@@ -84,7 +96,6 @@ m5.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                             eff.index ~ ideology.conc * condition.binary * num_c + 
                               topic + order + (1|subj.id))
 summary(m5.q2.2.ef.ideology) 
-print(x, correlation = TRUE) # GC: tu powinno być x? (ale nie wiem co to robi)
 anova(m5.q2.2.ef.ideology)
 m5.q2.2.ef.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
 

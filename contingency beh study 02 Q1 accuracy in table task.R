@@ -32,10 +32,10 @@ m0.q1.1 <- lmer(data = data.long,
              #data = data.long %>% filter(prior.conc != 0), 
            resp ~ condition.binary + 
              order + topic + (1|subj.id)) 
-summary(m0.g1.1)
+summary(m0.q1.1)
 
 # add numeracy
-m0.g1.2 <- lmer(data = data.long,
+m0.q1.2 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
              resp ~ condition.binary * num_c + 
@@ -51,7 +51,7 @@ summary(m0.q1.1.ideology)
 VarCorr(m0.q1.1.ideology) %>% 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc)
+  dplyr::select(grp, icc) #0.01 due to subj
 
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
@@ -60,7 +60,7 @@ m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                            topic + order +
                            (1|subj.id))
 summary(m1.q1.1.ideology)
-anova(m1.q1.1.ideology) #ideology.conc neutr sig.
+anova(m1.q1.1.ideology) #
 
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
 m2.q1.2.ideology <- lmer(data = data.long %>% filter(ideology != 4), 
@@ -78,7 +78,7 @@ m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4),
                           topic + order + (1|subj.id))
 summary(m3.q1.3.ideology)
 anova(m3.q1.3.ideology)
-#m3.q1.3.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc")) %>% plot()
+m3.q1.3.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc")) %>% plot()
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 
@@ -88,8 +88,7 @@ m4.q1.4.ideology <-lmer(data = data.long %>% filter(ideology != 4),
 #fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 summary(m4.q1.4.ideology) #ideology.conc and interaction sig
 anova(m4.q1.4.ideology)
-#m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition")) %>% 
-#  plot()
+#m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
 
 #---- Concordance with prior position ----
 # null model
@@ -99,7 +98,7 @@ summary(m0.q1.1.prior)
 VarCorr(m0.q1.1.prior) %>%
   as_tibble() %>%
   mutate(icc = vcov / sum(vcov)) %>%
-  dplyr::select(grp, icc)
+  dplyr::select(grp, icc) #due to subj = .08
 
 # add concordance with priors
 m1.q1.1.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
@@ -125,7 +124,7 @@ m3.q1.3.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
 summary(m3.q1.3.prior)
 anova(m3.q1.3.prior)
 m3.q1.3.prior  %>% ggemmeans(terms = c("num_c", "prior.conc")) %>% plot()
-#przy niezgodnych tym lepsze odp, im lepsze num, bez znaczenia dla zgodnych
+
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #prior +  difficulty interaction
@@ -141,7 +140,7 @@ m5.q1.5.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                      resp ~ prior.conc * num_c * condition.binary * topic +
                        order + (1 | subj.id)) #tu nie ma komunitaktu ostrzegawczego w końcu
 summary(m5.q1.5.prior)
-anova(m5.q1.5.prior) #topic istotny i int 4 st. istotna
+anova(m5.q1.5.prior) #
 #m5.q1.5.prior %>% ggemmeans(terms = c("prior.cult"+"num_c"+"contition.binary"+"topic")) %>% plot()
 
 
