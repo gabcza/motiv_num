@@ -31,24 +31,17 @@ levels(data.long$topic)
 
 #---- Concordance with ideology----
 # null model
+#install.packages("Matrix", dependencies = TRUE)
+library(Matrix)
+
 m0.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),# GC: tu do dodania ta ideologia != 4 (?)
                             eff.index ~ 1 + (1|subj.id)) 
 summary(m0.q2.1.ef.ideology)
+
 VarCorr(m0.q2.1.ef.ideology) %>% # get variance components (these are SDs) 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc) # due to subj = 
-
-
-#Error in model.frame.default(data = data.long %>% filter(ideology != 4),
-#variable lengths differ (found for 'subj.id')
-#filtered_data <- data.long %>% filter(ideology != 4)
-#str(filtered_data)
-#filtered_data <- na.omit(filtered_data)
-#m0.q2.1.ef.ideology <- lmer(eff.index ~ 1 + (1|subj.id), data = filtered_data)
-#length(filtered_data$subj.id)
-
-
+  dplyr::select(grp, icc) # due to subj = .72
 
 
 # add argument ideology concordance
@@ -63,11 +56,13 @@ anova(m1.q2.1.ef.ideology)
 m2.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                   eff.index ~ 1 + ideology.conc + condition.binary + topic +
                   order + (1|subj.id)) 
-
+#fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 summary(m2.q2.1.ef.ideology)
 anova(m3.q2.1.ef.ideology)
-m2.q2.1.ef.ideology %>% ggemmeans(terms = "ideology.conc") %>% plot()
+#m2.q2.1.ef.ideology %>% ggemmeans(terms = "ideology.conc") %>% plot()
+m2.q2.1.ef.ideology %>%  ggpredict(terms = "ideology.conc") %>% plot()
 m2.q2.1.ef.ideology %>% ggemmeans(terms = "condition.binary") %>% plot()
+
 
 #add interaction ideology concordance * difficulty  
 m3.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
@@ -77,7 +72,7 @@ m3.q2.1.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
             topic + order + (1|subj.id)) 
 summary(m3.q2.1.ef.ideology)
 anova(m3.q2.1.ef.ideology)
-m3.q2.1.ef.ideology  %>% ggemmeans(terms = c("ideology.conc", "condition.binary")) %>% plot()
+m3.q2.1.ef.ideology  %>% ggpredict(terms = c("ideology.conc", "condition.binary")) %>% plot()
 
 #----Q2.2. Do people high vs. low on cognitive sophistication invest more effort ----
 #in a contingency table? Does it depend on a task difficulty and concordance? ----
@@ -97,7 +92,7 @@ m5.q2.2.ef.ideology <- lmer(data = data.long %>% filter(ideology != 4),
                               topic + order + (1|subj.id))
 summary(m5.q2.2.ef.ideology) 
 anova(m5.q2.2.ef.ideology)
-m5.q2.2.ef.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
+m5.q2.2.ef.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
 
 #---- Concordance with priors ----
 #----Q2.1. Do people invest more effort when correct response is discordant 
@@ -109,7 +104,7 @@ summary(m0.q2.1.ef.prior)
 VarCorr(m0.q2.1.ef.prior) %>% # get variance components (these are SDs)
   as_tibble() %>%
   mutate(icc = vcov / sum(vcov)) %>%
-  dplyr::select(grp, icc) #subj: 
+  dplyr::select(grp, icc) #subj: .74
 
 # add argument ideology concordance
 m1.q2.1.ef.prior <- lmer(data = data.long %>% filter(prior.conc  != "neutr"),

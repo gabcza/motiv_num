@@ -51,7 +51,7 @@ summary(m0.q1.1.ideology)
 VarCorr(m0.q1.1.ideology) %>% 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc) #0.01 due to subj
+  dplyr::select(grp, icc) #0.1 due to subj
 
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
@@ -69,8 +69,8 @@ m2.q1.2.ideology <- lmer(data = data.long %>% filter(ideology != 4),
 summary(m2.q1.2.ideology)
 anova(m2.q1.2.ideology)
 m2.q1.2.ideology %>% ggemmeans(terms = "num_c") %>% plot()
-#m2.q1.2.ideology %>% ggemmeans(terms = "topic") %>% plot()
-#m2.q1.2.ideology %>% ggemmeans(terms = c("num_c", "topic")) %>% plot()
+m2.q1.2.ideology %>% ggemmeans(terms = "topic") %>% plot()
+m2.q1.2.ideology %>% ggemmeans(terms = c("num_c", "topic")) %>% plot()
 
 # Q1.3. What are the interactive effects of ideology and cognitive sophistication on accuracy?
 m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4), 
@@ -78,7 +78,7 @@ m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4),
                           topic + order + (1|subj.id))
 summary(m3.q1.3.ideology)
 anova(m3.q1.3.ideology)
-m3.q1.3.ideology  %>% ggemmeans(terms = c("num_c", "ideology.conc")) %>% plot()
+m3.q1.3.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc")) %>% plot() #not for continuous var
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 
@@ -88,7 +88,9 @@ m4.q1.4.ideology <-lmer(data = data.long %>% filter(ideology != 4),
 #fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 summary(m4.q1.4.ideology) #ideology.conc and interaction sig
 anova(m4.q1.4.ideology)
-#m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot()
+#m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot() #not for continuous var
+pred.val.m4.q1.4.ideology <- ggpredict(m4.q1.4.ideology, terms = c("num_c", "ideology.conc", "condition.binary"))
+plot(pred.val.m4.q1.4.ideology)
 
 #---- Concordance with prior position ----
 # null model
@@ -141,8 +143,8 @@ m5.q1.5.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                        order + (1 | subj.id)) #tu nie ma komunitaktu ostrzegawczego w końcu
 summary(m5.q1.5.prior)
 anova(m5.q1.5.prior) #
-#m5.q1.5.prior %>% ggemmeans(terms = c("prior.cult"+"num_c"+"contition.binary"+"topic")) %>% plot()
 
+m5.q1.5.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary", "topic")) %>% plot()
 
 
 

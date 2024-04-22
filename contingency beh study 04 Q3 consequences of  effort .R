@@ -44,7 +44,8 @@ m2.q3.ef_acc.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                              topic + order + (1|subj.id)) 
 summary(m2.q3.ef_acc.prior)
 anova(m2.q3.ef_acc.prior) 
-m2.q3.ef_acc.prior  %>% ggemmeans(terms = c("prior.conc", "eff.index")) %>% plot()
+m2.q3.ef_acc.prior  %>% ggemmeans(terms = c("eff.index", "prior.conc")) %>% plot()
+
 
 #+difficulty
 m3.q3.ef_acc.prior<- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
@@ -52,17 +53,21 @@ m3.q3.ef_acc.prior<- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                             topic + order + (1|subj.id)) 
 summary(m3.q3.ef_acc.prior)
 anova(m3.q3.ef_acc.prior) 
-m3.q3.ef_acc.prior  %>% ggemmeans(terms = c("prior.conc", "eff.index", "condition.binary")) %>% plot()
+m3.q3.ef_acc.prior  %>% ggemmeans(terms = c("eff.index", "prior.conc",  "condition.binary")) %>% plot()
 
 #Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
 #Does increased effort investment among the sophisticated leads to more or less accurate 
 #responding? Does it depend on concordance?
 m4.q3.ef_acc.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
                            resp ~ 1 +  eff.index + prior.conc + condition.binary + 
-                           eff.index*prior.conc*condition.binary:num_c +
+                           eff.index*prior.conc*condition.binary*num_c +
                            topic + order + (1|subj.id)) 
 summary(m4.q3.ef_acc.prior)
 anova(m4.q3.ef_acc.prior) #diff
+ggemmeans(m4.q3.ef_acc.prior, terms = c("eff.index", "num_c")) %>%
+  plot()
+
+
 
 #---- Concordance with ideology----
 m1.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4), # GC: dodajemy filtrowanie ideology != 4 (?)
@@ -71,7 +76,7 @@ m1.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4), # GC: 
 #boundary (singular) fit: see help('isSingular')
 summary(m1.q3.ef_acc.ideology)
 anova(m1.q3.ef_acc.ideology) 
-m2.q3.ef_acc.ideology %>%
+m1.q3.ef_acc.ideology %>%
   ggemmeans(terms = "eff.index") %>%
   plot()
 
@@ -82,7 +87,7 @@ m2.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
 
 summary(m1.q3.ef_acc.ideology)
 anova(m1.q3.ef_acc.ideology) 
-m2.q3.ef_acc.ideology  %>% ggemmeans(terms = c("ideology.conc", "eff.index")) %>% plot()
+m2.q3.ef_acc.ideology  %>% ggpredict(terms = c("eff.index", "ideology.conc")) %>% plot()
 
 #+difficulty
 m3.q3.ef_acc.ideology<- lmer(data = data.long %>% filter(ideology != 4), 
@@ -90,7 +95,7 @@ m3.q3.ef_acc.ideology<- lmer(data = data.long %>% filter(ideology != 4),
                                topic + order + (1|subj.id)) 
 summary(m3.q3.ef_acc.ideology) 
 anova(m3.q3.ef_acc.ideology) 
-m2.q3.ef_acc.ideology  %>% ggemmeans(terms = c("ideology.conc", "eff.index", "diff")) %>% plot()
+m3.q3.ef_acc.ideology  %>% ggpredict(terms = c("eff.index","ideology.conc", "condition.binary")) %>% plot()
 
 #Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
 #Does increased effort investment among the sophisticated leads to more or less accurate 
@@ -101,5 +106,6 @@ m4.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
 
 summary(m4.q3.ef_acc.ideology)
 anova(m4.q3.ef_acc.ideology)
-
+ggemmeans(m4.q3.ef_acc.ideology, terms = c("eff.index", "num_c")) %>%
+  plot()
 

@@ -26,7 +26,7 @@ options(scipen = 999)
 #Climat
 r1.climate <- lm(data = data.long, prior.climate.pos ~ age_s_c + gender + educ_s_c + ideology)    
 summary(r1.climate)
-r1.climate.means <- ggemmeans(r1.climat, terms = "ideology")
+r1.climate.means <- ggemmeans(r1.climate, terms = "ideology")
 plot(r1.climate.means)
 car::vif(r1.climate)
 

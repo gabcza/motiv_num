@@ -424,6 +424,8 @@ data.long <- data.long %>%
   )
 
 summary(as.factor(data.long$prior.conc))
+#disc neutr  conc 
+#456   174   477 
 
 #---- add info on concordance of task version with ideology
 #clim ns - concordant right-wing, gmo ns - concordant right with, homeo = 0 
