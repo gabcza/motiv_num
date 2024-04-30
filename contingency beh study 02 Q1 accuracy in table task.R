@@ -34,6 +34,8 @@ m0.q1.1 <- lmer(data = data.long,
              order + topic + (1|subj.id)) 
 summary(m0.q1.1)
 
+m0.q1.1 %>% ggemmeans(c("condition.binary", "topic")) %>% plot() 
+
 # add numeracy
 m0.q1.2 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
@@ -41,6 +43,8 @@ m0.q1.2 <- lmer(data = data.long,
              resp ~ condition.binary * num_c + 
                order + topic + (1|subj.id)) 
 summary(m0.q1.2)
+
+m0.q1.2 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() 
 
 #---- #Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
@@ -79,6 +83,7 @@ m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4),
 summary(m3.q1.3.ideology)
 anova(m3.q1.3.ideology)
 m3.q1.3.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc")) %>% plot() #not for continuous var
+#fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 

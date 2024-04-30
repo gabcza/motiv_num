@@ -166,6 +166,10 @@ psych::alpha(data[ideology]) #std alpha = .70/raw = .69 (we can use it as a meas
 data$ideology <- rowMeans(data[c("polit.cult", "immigr.pos.reversed", "gay.pos.reversed")], na.rm = TRUE)
 hist(data$ideology)
 summary(data$ideology) #M = 4.47
+
+
+
+
 #----- create indices of ind. differences ----
 # num sum of correct resp
 # nfc mean
@@ -306,6 +310,9 @@ nrow(data) #372
 #RT > 300
 data <- data %>% filter (Duration__in_seconds_ >300) #N = 369
 
+# odfitruj osoby, które nie ukończyły (nie odpowiedziały na ostatnie obowiązkowe pytanie)
+#data <- data %>% filter(!is.na(guessing.check)) #N = 401 
+
 #---- Rescale and grand-mean center vars ----
 # GC: moving rescaled vars after filtering observations out
 
@@ -342,6 +349,11 @@ data <- data %>%
 
 plot(data$num_c, data$num)
 hist(data$age_s_c)
+
+
+#cor(data$guessing.check, data$num) #.39
+
+
 
 #---- Save clean data----
 data.clean <- data
@@ -385,7 +397,7 @@ head(data.long)
 
 data.ind <- data.clean %>% 
   dplyr::select(subj.id, gender, age_s_c, educ_s_c, 
-                ideology,
+                ideology, 
                 num_c, #recoded education = educ now
                 starts_with("prior"))
 names(data.ind)
@@ -465,8 +477,12 @@ data.long$condition.binary <- factor(data.long$condition.binary)
 # (dodaję)
 cor(data.long$eff, data.long$diff) # .78
 #effort index
-eff.index <- mean(c(data.long$eff, data.long$diff))
-print(paste("eff.index:", eff.index))
+#eff.index <- mean(c(data.long$eff, data.long$diff))
+#print(paste("eff.index:", eff.index))
+data.long$eff.index <- rowMeans(data.long[, c("eff", "diff")], na.rm = TRUE)
+
+# Print the first few rows of the dataset to verify the new variable
+head(data.long)
 
 
 #GC: check resp per person 

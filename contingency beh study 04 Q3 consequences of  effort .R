@@ -64,10 +64,10 @@ m4.q3.ef_acc.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                            topic + order + (1|subj.id)) 
 summary(m4.q3.ef_acc.prior)
 anova(m4.q3.ef_acc.prior) #diff
-ggemmeans(m4.q3.ef_acc.prior, terms = c("eff.index", "num_c")) %>%
-  plot()
+#ggemmeans(m4.q3.ef_acc.prior, terms = c("eff.index", "num_c")) %>%
+#  plot()
 
-
+m4.q3.ef_acc.prior %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
 
 #---- Concordance with ideology----
 m1.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4), # GC: dodajemy filtrowanie ideology != 4 (?)
@@ -106,6 +106,10 @@ m4.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
 
 summary(m4.q3.ef_acc.ideology)
 anova(m4.q3.ef_acc.ideology)
-ggemmeans(m4.q3.ef_acc.ideology, terms = c("eff.index", "num_c")) %>%
+#ggemmeans(m4.q3.ef_acc.ideology, terms = c("eff.index", "num_c")) %>%
+  #plot()
+m4.q3.ef_acc.ideology %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
+
+ggpredict(m4.q3.ef_acc.ideology, terms = c("num_c", "ideology.conc")) %>%
   plot()
 
