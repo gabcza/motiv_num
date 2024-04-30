@@ -15,9 +15,9 @@ library(ggeffects)
 options(scipen = 999)
 
 #---- Load data in a long format ----
-# use the script called 'contingency beh study 01 clean data.R"
+# use the script called '[main study] contingency beh study 01 clean data.R"
 # or saved data
-#data.long <- read.csv(data contingency beh study pilot clean long data.csv")
+#data.long <- read.csv(data contingency beh study clean long data.csv")
 
 
 #topic
