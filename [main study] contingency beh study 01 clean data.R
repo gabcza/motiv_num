@@ -1,6 +1,6 @@
 #---------------------------------------------------------------------------------------------------------------------
 #---- Info -----
-# Goal: clean and prep of the data from pilot contingency beh. study
+# Goal: clean and prep of the data from contingency beh. study
 # 
 # written 14-03-2024 by Iwonka
 #---------------------------------------------------------------------------------------------------------------------
@@ -46,8 +46,8 @@ data.cdbk <- cbind(data.cdbk,  data.desc)
 data.cdbk <- data.cdbk %>% mutate(question = stringr::str_replace_all(question, "[\r\n]" , " ")) # remove "enter" with a space
 
 # save codebook (add # if it will be done)
-#write.csv2(data.cdbk, "pilot contingency beh. study.csv", 
-#        fileEncoding = "UTF-16LE")
+#write.csv2(data.cdbk, "contingency beh. study.csv", 
+#       fileEncoding = "UTF-16LE")
 
 # View data
 sjPlot::view_df(data, encoding = "UTF-8") # THIS IS JUST GREAT TO SEE THE WHOLE DATASET WITH VAR LABELS
@@ -271,8 +271,8 @@ data <- data %>% select(
 
 #---- Save full data data ----
 # all responses in the survey (incl. those who failed attention checks etc)
-write.csv(data,"data contingency beh study pilot full data.csv")
-write.csv2(data,"data contingency beh study pilot full data.csv")
+write.csv(data,"data contingency beh study full data.csv")
+write.csv2(data,"data contingency beh study full data.csv")
 
 #---------------------------------------------------------------------------------------------------------------------
 #---- Filter data ----
@@ -357,8 +357,8 @@ hist(data$age_s_c)
 
 #---- Save clean data----
 data.clean <- data
-write.csv(data.clean,"data contingency beh study pilot clean data.csv")
-write.csv2(data.clean,"data contingency beh study pilot clean data.csv")
+write.csv(data.clean,"data contingency beh study clean data.csv")
+write.csv2(data.clean,"data contingency beh study clean data.csv")
 
 #---------------------------------------------------------------------------------------------------------------------
 #---- Create long dataset ----
@@ -490,5 +490,5 @@ head(data.long)
 
 #---- Save cleaned long data----
 data.long.clean <- data.long
-write.csv(data.long.clean,"data contingency beh study pilot clean long data.csv")
-write.csv2(data.long.clean,"data contingency beh study pilot clean long data.csv")
+write.csv(data.long.clean,"data contingency beh study clean long data.csv")
+write.csv2(data.long.clean,"data contingency beh study clean long data.csv")
