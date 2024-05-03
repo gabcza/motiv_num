@@ -105,12 +105,9 @@ data <- data %>%
          nfc2 = nfc2_,
          nfc3 = nfc3_)
 
-educ_values <- unique(data$educ)
+#educ_values <- unique(data$educ)
+#educ_values
 
-names(data)
-
-# Print the unique values of the 'educ' variable
-print(educ_values)
 #----- recode demographic data ----
 data <- data %>%
   mutate(
@@ -118,12 +115,12 @@ data <- data %>%
                          polit.lr == 99 ~ NA_real_),
     # political party - UPDATE 2024
     # recode political party into right- vs. left-wing
-    polit.party.econ = case_when(polit.party %in% c(2, 5) ~ 1, # KO, Konfederecja
-                                 polit.party %in% c(1, 3, 4, 5, 6) ~ 0, # Lewica, Trzecia Droga, PIS, Suwerenna
-                                 TRUE ~ NA_real_), # other, don't know, don't vote 
-    polit.party.cult = case_when(polit.party %in% c(4, 5, 6) ~ 1, # PIS, Konfederacja, Suwerenna
-                                 polit.party %in% c(1, 2, 3) ~ 0, # Lewica, KO, Trzecia Droga
-                                 TRUE ~ NA_real_), # other, don't know, don't vote 
+    polit.party.econ = case_when(polit.party %in% c(2, 5) ~ 1, 
+                                 polit.party %in% c(1, 3, 4, 5, 6) ~ 0,
+                                 TRUE ~ NA_real_), 
+    polit.party.cult = case_when(polit.party %in% c(4, 5, 6) ~ 1, 
+                                 polit.party %in% c(1, 2, 3) ~ 0, 
+                                 TRUE ~ NA_real_),
     # add political party names 
     polit.party.name = case_when(polit.party == 1 ~ "1. Left", # 1 = Lewica (Razem, SLD, Wiosna)
                                  polit.party == 2 ~ "2. The Civic Coalition", # 2 = Koalicja Obywatelska
@@ -167,9 +164,6 @@ data$ideology <- rowMeans(data[c("polit.cult", "immigr.pos.reversed", "gay.pos.r
 hist(data$ideology)
 summary(data$ideology) #M = 4.47
 
-
-
-
 #----- create indices of ind. differences ----
 # num sum of correct resp
 # nfc mean
@@ -178,35 +172,36 @@ summary(data$ideology) #M = 4.47
 #order as in Stagnaro
 data <- data %>%
   mutate(
-    num1.cor = case_when(num1 == 500 ~ 1, TRUE ~ 0), # resp = 500 (times) is correct
-    num2.cor = case_when(num2 == 10 ~ 1, TRUE ~ 0), # resp = 10 (people) is correct
-    num3.cor = case_when(num3 == 0.1 ~ 1, TRUE ~ 0), #resp = 0.1 (%) is correct
-    num4.cor = case_when(num4 == 20 ~ 1, TRUE ~ 0), # resp = 20 (%) is correct
-    num5.cor = case_when(num5 == 100 ~ 1, TRUE ~ 0), # resp = 100 (people) is correct
-    num6.cor = case_when(num6_4 == 9 & num6_5 == 19 ~ 1,
-                         TRUE ~ 0),# resp = 9/19 is correct
-    num7.cor = case_when(num7 == 4 ~ 1, TRUE ~ 0), # resp = 4 (y.o) is correct
-    num8.cor = case_when(num8 == 10 ~ 1, TRUE ~ 0), # resp = 10 (sec) is correct
-    num9.cor = case_when(num9 == 39 ~ 1, TRUE ~ 0) # resp = 39 (days) is correct
-  )
-
+  # GC: this I'd change into 0s being someone responding wrong and not NA
+  num1.cor = case_when(num1 == 500 ~ 1, num1 != 500 ~ 0, is.na(num1) ~ NA_real_), # resp = 500 (times) is correct
+  num2.cor = case_when(num2 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (people) is correct
+  num3.cor = case_when(num3 == 0.1 ~ 1, num1 != 0.1 ~ 0, is.na(num1) ~ NA_real_), #resp = 0.1 (%) is correct
+  num4.cor = case_when(num4 == 20 ~ 1, num1 != 20 ~ 0, is.na(num1) ~ NA_real_), # resp = 20 (%) is correct
+  num5.cor = case_when(num5 == 100 ~ 1, num1 != 100 ~ 0, is.na(num1) ~ NA_real_), # resp = 100 (people) is correct
+  num6.cor = case_when((num6_4 == 9 & num6_5 == 19 ~ 1),
+                       (num6_4 != 9 | num6_5 != 19 ~ 0),
+                       (is.na(num6_4) | is.na(num6_5) ~ NA_real_)),# resp = 9/19 is correct
+  num7.cor = case_when(num7 == 4 ~ 1, num1 != 4 ~ 0, is.na(num1) ~ NA_real_), # resp = 4 (y.o) is correct
+  num8.cor = case_when(num8 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (sec) is correct
+  num9.cor = case_when(num9 == 39 ~ 1, num1 != 39 ~ 0, is.na(num1) ~ NA_real_) # resp = 39 (days) is correct
+ )
 
 num <- c("num1.cor", "num2.cor", "num3.cor", "num4.cor", "num5.cor", 
          "num6.cor", "num7.cor", "num8.cor", "num9.cor")
-psych::alpha(data[num]) #raw alpha = .86/ std alpha = .85
+psych::alpha(data[num]) #raw alpha = .74/ std alpha = .73
 data$num = rowMeans(data[num], na.rm = TRUE) 
 hist(data$num) # 1 - easy, rest rather diff
 paste0("Numeracy scoress: M = ", round(mean(data$num, na.rm = TRUE), 2), ", SD = ", round(sd(data$num, na.rm = TRUE), 2))
-#M = 0.2, SD = 0.27
+#M = 0.40, SD = 0.25
 #create 0 vs 1 scores
-data <- data %>% mutate(num01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 NUMERACY score
+data <- data %>% mutate(num01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 numeracy score
 
 # Crt scores (last 3 items in numeracy test)
 crt <- c("num7.cor", "num8.cor", "num9.cor")
 data$crt = rowMeans(data[crt], na.rm = TRUE) 
 hist(data$crt) # 1 - easy, rest rather diff
 #create 0 vs 1 scores
-data <- data %>% mutate(crt01 = case_when(crt == 0 ~ 0, crt > 0 ~ 1))# create 0-1 NUMERACY score
+data <- data %>% mutate(crt01 = case_when(crt == 0 ~ 0, crt > 0 ~ 1))# create 0-1 CRT scores
 
 #NFC mean
 data$NFC.mean <- rowMeans(data[c("nfc1", "nfc2", "nfc3")], na.rm = TRUE)
@@ -227,7 +222,6 @@ data %>% select(starts_with("FL_")) %>% names() # show vars coding order
 # "FL_33_DO_HOMEO.ARG.2"              "FL_33_DO_HOMEO.ARG.3"              "FL_33_DO_HOMEO.ARG.4"             
 # "FL_33_DO_HOMEO.ARG.5"              "FL_33_DO_HOMEO.ARG.6"              "FL_33_DO_HOMEO.ARG.7"             
 # "FL_33_DO_HOMEO.ARG.8"              "FL_33_DO_HOMEO.ARG.9"              "FL_33_DO_HOMEO.ARG.10"
-
 
 data <- data %>% 
   rename(
@@ -296,25 +290,19 @@ data <- data %>%
   filter(total_att_check == 3) #N = 532
 
 #Remove the 'total_att_check' column if no longer needed
-data <- select(data, -total_att_check)
+#data <- select(data, -total_att_check)
 
-# remove people who failed serious chcek
-#summary(as.factor(data$serious.check))
-#data <- data %>% filter(serious.check == 1) 
-#nrow(data) # N = 
+#remove people who admit failing instructions -- NOT EXCLUDED
+#data <- data %>% filter(instruction.check == 1)
+#nrow(data) #372
 
-#remove people who failed instruction check
-data <- data %>% filter(instruction.check == 1)
-nrow(data) #372
+#RT > 300 -- NOT EXCLUDED
+#data <- data %>% filter (Duration__in_seconds_ >300) #N = 369
 
-#RT > 300
-data <- data %>% filter (Duration__in_seconds_ >300) #N = 369
-
-# odfitruj osoby, które nie ukończyły (nie odpowiedziały na ostatnie obowiązkowe pytanie)
-#data <- data %>% filter(!is.na(guessing.check)) #N = 401 
+# remove people who didn't finish the study -- TO DECIDE
+#data2 <- data %>% filter(!is.na(instruction.check)) #N = 401 
 
 #---- Rescale and grand-mean center vars ----
-# GC: moving rescaled vars after filtering observations out
 
 # rescale vars between 0-1
 data <- data %>% 
@@ -346,14 +334,9 @@ data <- data %>%
       .fns = ~c(scale(., center = TRUE, scale = FALSE)),
       .names = "{.col}_c"))
 # check vars
-
 plot(data$num_c, data$num)
 hist(data$age_s_c)
-
-
 #cor(data$guessing.check, data$num) #.39
-
-
 
 #---- Save clean data----
 data.clean <- data
@@ -391,10 +374,9 @@ data.long <- data.clean %>%
 # recode levels for condition
 data.long <- data.long %>% 
   mutate(condition = factor(condition, levels = c("easy", "hard")))
-
-# Print the first few rows of the resulting data frame to check for any issues
 head(data.long)
 
+# select individual-level data to add to the long data
 data.ind <- data.clean %>% 
   dplyr::select(subj.id, gender, age_s_c, educ_s_c, 
                 ideology, 
@@ -488,7 +470,7 @@ head(data.long)
 #GC: check resp per person 
 #x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
 
-#---- Save cleaned long data----
+#---- Save long data (clean)----
 data.long.clean <- data.long
 write.csv(data.long.clean,"data contingency beh study clean long data.csv")
 write.csv2(data.long.clean,"data contingency beh study clean long data.csv")
