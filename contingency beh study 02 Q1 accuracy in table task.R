@@ -17,7 +17,7 @@ options(scipen = 999)
 #---- Load data in a long format ----
 # use the script called '[main study] contingency beh study 01 clean data.R"
 # or saved data
-#data.long <- read.csv(data contingency beh study clean long data.csv")
+#data.long <- read.csv("data contingency beh study clean long data.csv")
 
 #topic
 data.long$topic <- as.factor(data.long$topic)
@@ -26,25 +26,77 @@ data.long <- data.long %>%
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
 
-#---- Effects of task difficulty (no concordance) ----
+# Remove responses below X seconds
+x <- data.long %>% 
+  filter(rt >= 20) 
+nrow(x)
+# >=10 seconds: 1362
+# >=15 seconds: 1312
+# >=20 seconds: 1256
+
+# remove responses below 10 seconds
+data.long <- data.long %>% filter(rt >= 10)
+
+#---- Q1.2: Are people more accurate when high on numeracy? and   ----
 m0.q1.1 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
-           resp ~ condition.binary + 
+           resp ~ condition.binary +
              order + topic + (1|subj.id)) 
 summary(m0.q1.1)
+m0.q1.1 %>% ggemmeans(c("topic", "condition.binary")) %>% plot() 
 
-m0.q1.1 %>% ggemmeans(c("condition.binary", "topic")) %>% plot() 
+# check differences between the conditions
+m0.q1.2 <- lmer(data = data.long,
+                #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                #data = data.long %>% filter(prior.conc != 0), 
+                resp ~ condition.binary * topic +
+                  order + (1|subj.id)) 
+summary(m0.q1.2)
+m0.q1.2 %>% ggemmeans(c("topic", "condition.binary")) %>% plot() +
+  labs(title = "", y = "Accuracy", color = "Difficulty")
 
 # add numeracy
-m0.q1.2 <- lmer(data = data.long,
-             #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
-             #data = data.long %>% filter(prior.conc != 0), 
-             resp ~ condition.binary * num_c + 
-               order + topic + (1|subj.id)) 
-summary(m0.q1.2)
+m0.q1.3 <- lmer(data = data.long,
+                #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                #data = data.long %>% filter(prior.conc != 0), 
+                resp ~ condition.binary * num_c + 
+                  order + topic + (1|subj.id)) 
+summary(m0.q1.3)
+anova(m0.q1.3)
+m0.q1.3 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "", y = "Accuracy", x = "Numeracy", color = "Difficulty")
 
-m0.q1.2 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() 
+# add numeracy and topic interaction
+m0.q1.4 <- lmer(data = data.long,
+                #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                #data = data.long %>% filter(prior.conc != 0), 
+                resp ~ condition.binary * num_c * topic + 
+                  order + (1|subj.id)) 
+summary(m0.q1.4)
+anova(m0.q1.4)
+m0.q1.4 %>% ggemmeans(c("num_c", "condition.binary", "topic")) %>% plot() +
+  labs(title = "Accuracy", y = "Accuracy", x = "Numeracy", color = "Difficulty")
+  
+# separate models per topic
+# climate
+m0.q1.4.clim <- lm(data = data.long %>% filter(topic == "clim"),
+                #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                #data = data.long %>% filter(prior.conc != 0), 
+                resp ~ condition.binary * num_c + order) 
+summary(m0.q1.4.clim)
+# gmo
+m0.q1.4.gmo <- lm(data = data.long %>% filter(topic == "gmo"),
+                   #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                   #data = data.long %>% filter(prior.conc != 0), 
+                   resp ~ condition.binary * num_c) 
+summary(m0.q1.4.gmo)
+# homeopathy
+m0.q1.4.hom <- lm(data = data.long %>% filter(topic == "hom"),
+                  #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
+                  #data = data.long %>% filter(prior.conc != 0), 
+                  resp ~ condition.binary * num_c + order) 
+summary(m0.q1.4.hom)
 
 #---- #Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
@@ -67,6 +119,9 @@ summary(m1.q1.1.ideology)
 anova(m1.q1.1.ideology) #
 
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
+# GC: nie wiem czy tak bym liczyła ten model (to samo co wyżej z wyłączeniem osób z id = 4)
+# ale na razie zostawmy; możemy przesunąć te modele z Q1.2 wyżej (poza analizy concordance
+# a ideologią albo priors)
 m2.q1.2.ideology <- lmer(data = data.long %>% filter(ideology != 4), 
                          resp ~ num_c + 
                            topic + order + (1|subj.id))
@@ -99,13 +154,14 @@ plot(pred.val.m4.q1.4.ideology)
 
 #---- Concordance with prior position ----
 # null model
+# To w sumie też jest mało informacyjne i docelowo bym usunęła
 m0.q1.1.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                       resp ~ 1 + (1|subj.id))
 summary(m0.q1.1.prior)
 VarCorr(m0.q1.1.prior) %>%
   as_tibble() %>%
   mutate(icc = vcov / sum(vcov)) %>%
-  dplyr::select(grp, icc) #due to subj = .08
+  dplyr::select(grp, icc) #due to subj = .06
 
 # add concordance with priors
 m1.q1.1.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
@@ -113,9 +169,18 @@ m1.q1.1.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
          topic + order + (1|subj.id)) 
 summary(m1.q1.1.prior)
 anova(m1.q1.1.prior)
-
+m1.q1.1.prior %>% ggemmeans(terms = "prior.conc") %>% 
+  ggplot(aes(x, predicted, fill = x)) +
+  geom_bar(stat = "identity") + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.50) +
+  labs(title = "",
+       x = "Concordance with priors", y = "Accuracy", fill = "Concordance") + 
+  #coord_cartesian(ylim = c(0,1)) +
+  theme_minimal()
+                                                          
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
-# add numeracy
+# add numeracy 
+# GC: j.w. tego modelu raczej nie potrzebujemy
 m2.q1.2.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                       resp ~ 1 + num_c + 
                         topic + order + (1|subj.id)) 
@@ -130,8 +195,11 @@ m3.q1.3.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                         topic + order + (1|subj.id)) 
 summary(m3.q1.3.prior)
 anova(m3.q1.3.prior)
-m3.q1.3.prior  %>% ggemmeans(terms = c("num_c", "prior.conc")) %>% plot()
-
+m3.q1.3.prior  %>% ggemmeans(terms = c("num_c", "prior.conc")) %>% plot() +
+  labs(title = "", x = "Concordance with priors", y = "Accuracy", 
+       color = "Concordance") + 
+  #coord_cartesian(ylim = c(0,1)) +
+  theme_minimal()
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #prior +  difficulty interaction
@@ -140,18 +208,24 @@ m4.q1.4.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                         topic + order + (1|subj.id)) 
 summary(m4.q1.4.prior)
 anova(m4.q1.4.prior)
-m4.q1.4.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% plot()
+m4.q1.4.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% 
+  plot() + 
+  labs(title = "", x = "Concordance with priors", y = "Accuracy", 
+       color = "Concordance") #+ 
+  #coord_cartesian(ylim = c(0,1)) +
+  #theme_classic()
 
-#+topic interaction (ten model do zastanowienia)
+# add interaction with a topic (ten model do zastanowienia)
 m5.q1.5.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
                      resp ~ prior.conc * num_c * condition.binary * topic +
-                       order + (1 | subj.id)) #tu nie ma komunitaktu ostrzegawczego w końcu
+                       order + (1 | subj.id))
 summary(m5.q1.5.prior)
 anova(m5.q1.5.prior) #
-
-m5.q1.5.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary", "topic")) %>% plot()
-
-
+m5.q1.5.prior %>% 
+  ggemmeans(terms = c("num_c", "prior.conc", "condition.binary", "topic")) %>% 
+  plot() + 
+  labs(title = "", x = "Concordance with priors", y = "Accuracy", 
+       color = "Concordance") #+ 
 
 
 

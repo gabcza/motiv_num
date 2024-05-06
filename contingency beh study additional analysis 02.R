@@ -26,20 +26,24 @@ data.long <- data.long %>%
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
 
-#---- Effects of task difficulty (no concordance) on both condition----
+#---- Effects on perception of accuracy ----
 m0.q4 <- lmer(data = data.long,
-                percc ~ condition.binary + 
+                percc ~ condition.binary * topic + 
                   order + topic + (1|subj.id)) 
 summary(m0.q4)
-
-m0.q4 %>% ggemmeans(c("condition.binary", "topic")) %>% plot() 
+m0.q4 %>% ggemmeans(c("topic", "condition.binary")) %>% plot() +
+  labs(title = "Perceived accuracy", y = "Perceived accuracy", #x = "Numeracy", 
+       color = "Difficulty")
 
 # add numeracy
-
 m0.q4.1 <- lmer(data = data.long,
-                percc ~ condition.binary + num_c + 
+                percc ~ condition.binary * num_c + 
                   order + topic + (1|subj.id)) 
 summary(m0.q4.1)
+anova(m0.q4.1)
+m0.q4.1 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Perceived accuracy", y = "Perceived accuracy", x = "Numeracy", 
+       color = "Difficulty")
 
 #numeracy
 m0.q4.2 <- lmer(data = data.long,
@@ -55,7 +59,6 @@ m0.q4.3 <- lmer(data = data.long,
 summary(m0.q4.3)
 
 m0.q4.3 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() 
-
 
 
 #---- #Effects of numeracy in easy condition ---- 

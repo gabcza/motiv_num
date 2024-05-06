@@ -70,6 +70,7 @@ data <- data %>%
          prior.climate.cert =  prior.climate.cert_1,
          prior.climate.imp = prior.climate.imp_1,
          prior.climate.diff = prior.climate.diff_1,
+         prior.climate.act = prior.climate.act_1,
          prior.gmo.pos  = prior.gmo.pos_1,
          prior.gmo.cert =  prior.gmo.cert_1,
          prior.gmo.imp = prior.gmo.imp_1,
@@ -380,7 +381,8 @@ head(data.long)
 data.ind <- data.clean %>% 
   dplyr::select(subj.id, gender, age_s_c, educ_s_c, 
                 ideology, 
-                num_c, #recoded education = educ now
+                num_c, crt_c,
+                Duration__in_seconds_, 
                 starts_with("prior"))
 names(data.ind)
 
@@ -396,21 +398,21 @@ data.long <- data.long %>% left_join(data.ind, by = "subj.id") %>%
 data.long <- data.long %>% 
   mutate(
     prior.conc = case_when(
-      prior.climate.pos == 50 ~ 0, # initial pos neutral
-      version == "s" & prior.climate.pos < 50 ~ -1, # discordant with prior
-      version == "s" & prior.climate.pos > 50 ~ 1, # concordant with prior
-      version == "ns" & prior.climate.pos > 50 ~ -1, # discordant with prior
-      version == "ns" & prior.climate.pos < 50 ~ 1,
+      prior.climate.pos == 0 ~ 0, # initial pos neutral
+      version == "s" & prior.climate.pos < 0 ~ -1, # discordant with prior
+      version == "s" & prior.climate.pos > 0 ~ 1, # concordant with prior
+      version == "ns" & prior.climate.pos > 0 ~ -1, # discordant with prior
+      version == "ns" & prior.climate.pos < 0 ~ 1,
       prior.gmo.pos == 50 ~ 0, # initial pos neutral
-      version == "s" & prior.gmo.pos < 50 ~ -1, # discordant with prior
-      version == "s" & prior.gmo.pos > 50 ~ 1, # concordant with prior
-      version == "ns" & prior.gmo.pos > 50 ~ -1, # discordant with prior
-      version == "ns" & prior.gmo.pos < 50 ~ 1, # concordant with prior
+      version == "s" & prior.gmo.pos < 0 ~ -1, # discordant with prior
+      version == "s" & prior.gmo.pos > 0 ~ 1, # concordant with prior
+      version == "ns" & prior.gmo.pos > 0 ~ -1, # discordant with prior
+      version == "ns" & prior.gmo.pos < 0 ~ 1, # concordant with prior
       prior.hom.pos == 500 ~ 0, # initial pos neutral
       # homeopathy opposite
-      version == "s" & prior.hom.pos < 50 ~ 1, # concordant with prior
-      version == "s" & prior.hom.pos > 50 ~ -1, # discordant with prior
-      version == "ns" & prior.hom.pos > 50 ~ 1, # concordant with prior
+      version == "s" & prior.hom.pos < 0 ~ 1, # concordant with prior
+      version == "s" & prior.hom.pos > 0 ~ -1, # discordant with prior
+      version == "ns" & prior.hom.pos > 0 ~ 1, # concordant with prior
       version == "ns" & prior.hom.pos < 50 ~ -1 #discordant with prior
     ),
     prior.conc = factor(prior.conc, levels = c(-1, 0, 1), labels = c("disc", "neutr", "conc"))
@@ -418,8 +420,11 @@ data.long <- data.long %>%
   )
 
 summary(as.factor(data.long$prior.conc))
-#disc neutr  conc 
-#456   174   477 
+#disc neutr  conc --> WRONG CODING (using 50 as middle) 
+#456   174   477
+
+#disc neutr  conc --> CORRECT CODING (using 0 as middle) BUT ALSO INCL. PEOPLE WITH MISSING DATA
+#774    12   771 
 
 #---- add info on concordance of task version with ideology
 #clim ns - concordant right-wing, gmo ns - concordant right with, homeo = 0 
@@ -437,12 +442,18 @@ data.long <- data.long %>%
       topic == "gmo" & version == "s" & ideology > 4 ~ -1, # discordant with ideology
       topic == "gmo" & version == "ns" & ideology > 4 ~ 1, #concordant with ideology 
       #przy homeopatii ideologia nie ma znaczenia
-      topic == "hom" ~ 0 
-    ),
+      topic == "hom" ~ 0),
     ideology.conc = factor(ideology.conc, levels = c(-1, 0, 1), labels = c("disc", "neutr", "conc"))
   )
 
-names(data.long)
+# check number of observations per priors and topics
+data.long %>% group_by(topic, condition, version) %>%
+  summarize(n = n()) # fairly balanced s and ns across topics
+# check N per condition and priors
+x <- data.long %>% group_by(topic, condition, version, prior.conc) %>%
+  summarize(n = n()) 
+y <- data.long %>% group_by(topic, condition, version, ideology.conc) %>%
+  summarize(n = n()) 
 
 ## recode condition variable
 data.long$condition.binary <- ifelse(data.long$condition == "hard", 1, 0)
@@ -453,11 +464,8 @@ data.long %>%
 #easy = 546/3 = 182 ok, hard =561/3 = 187 ok
 data.long$condition.binary <- factor(data.long$condition.binary)
 
-# GC: tu chyba trzeba dodać wyliczanie wskaźnika effort? (jeśli diff i eff korelują wysoko)
-#ID: tak, to mi ucięło podczas przenoszenia części skryptu z długim formatem do pliku
-# z czyszczeniem - jest zmienna eff.index w kolejnych skryptach, która tu powinna być zrobiona
-# (dodaję)
-cor(data.long$eff, data.long$diff) # .78
+# effort & difficulty
+cor(data.long$eff, data.long$diff, use = "na.or.complete") # .78
 #effort index
 #eff.index <- mean(c(data.long$eff, data.long$diff))
 #print(paste("eff.index:", eff.index))
@@ -465,7 +473,6 @@ data.long$eff.index <- rowMeans(data.long[, c("eff", "diff")], na.rm = TRUE)
 
 # Print the first few rows of the dataset to verify the new variable
 head(data.long)
-
 
 #GC: check resp per person 
 #x <- data.long %>% group_by(subj.id) %>% summarize(n = n())
