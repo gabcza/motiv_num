@@ -403,17 +403,17 @@ data.long <- data.long %>%
       version == "s" & prior.climate.pos > 0 ~ 1, # concordant with prior
       version == "ns" & prior.climate.pos > 0 ~ -1, # discordant with prior
       version == "ns" & prior.climate.pos < 0 ~ 1,
-      prior.gmo.pos == 50 ~ 0, # initial pos neutral
+      prior.gmo.pos == 0 ~ 0, # initial pos neutral
       version == "s" & prior.gmo.pos < 0 ~ -1, # discordant with prior
       version == "s" & prior.gmo.pos > 0 ~ 1, # concordant with prior
       version == "ns" & prior.gmo.pos > 0 ~ -1, # discordant with prior
       version == "ns" & prior.gmo.pos < 0 ~ 1, # concordant with prior
-      prior.hom.pos == 500 ~ 0, # initial pos neutral
+      prior.hom.pos == 0 ~ 0, # initial pos neutral
       # homeopathy opposite
       version == "s" & prior.hom.pos < 0 ~ 1, # concordant with prior
       version == "s" & prior.hom.pos > 0 ~ -1, # discordant with prior
       version == "ns" & prior.hom.pos > 0 ~ 1, # concordant with prior
-      version == "ns" & prior.hom.pos < 50 ~ -1 #discordant with prior
+      version == "ns" & prior.hom.pos < 0 ~ -1 #discordant with prior
     ),
     prior.conc = factor(prior.conc, levels = c(-1, 0, 1), labels = c("disc", "neutr", "conc"))
     # arg.side.f = factor(arg.side, levels = c(1, 7), labels = c("against", "pro"))
