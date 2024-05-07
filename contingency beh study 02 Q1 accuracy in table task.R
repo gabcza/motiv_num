@@ -111,7 +111,8 @@ VarCorr(m0.q1.1.ideology) %>%
 
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
-m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4),
+m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4) %>%
+                           filter(topic != "hom"),
                          resp ~ ideology.conc + 
                            topic + order +
                            (1|subj.id))
