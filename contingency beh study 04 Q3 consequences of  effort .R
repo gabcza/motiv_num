@@ -26,6 +26,19 @@ data.long <- data.long %>%
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
 
+
+# Remove responses below X seconds
+x <- data.long %>% 
+  filter(rt >= 20) 
+nrow(x)
+# >=10 seconds: 1362
+# >=15 seconds: 1312
+# >=20 seconds: 1256
+
+# remove responses below 10 seconds
+data.long <- data.long %>% filter(rt >= 10)
+
+
 #---- Q3a. Does effort investment lead to more accurate responding? Does it depend on concordance?----
 #---- Concordance with priors----
 # main effect of effort on accuracy of responding

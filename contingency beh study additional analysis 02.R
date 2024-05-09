@@ -26,11 +26,20 @@ data.long <- data.long %>%
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
 
+# Remove responses below X seconds
+x <- data.long %>% 
+  filter(rt >= 20) 
+nrow(x)
+# >=10 seconds: 1362
+# >=15 seconds: 1312
+# >=20 seconds: 1256
+
 #---- Effects on perception of accuracy ----
 m0.q4 <- lmer(data = data.long,
                 percc ~ condition.binary * topic + 
                   order + topic + (1|subj.id)) 
 summary(m0.q4)
+anova(m0.q4)
 m0.q4 %>% ggemmeans(c("topic", "condition.binary")) %>% plot() +
   labs(title = "Perceived accuracy", y = "Perceived accuracy", #x = "Numeracy", 
        color = "Difficulty")
@@ -52,7 +61,7 @@ m0.q4.2 <- lmer(data = data.long,
 summary(m0.q4.2)
 
 #numeracy * condition 
-m0.q4.3 %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() 
+
 m0.q4.3 <- lmer(data = data.long,
                 percc ~ condition.binary * num_c + 
                   order + topic + (1|subj.id)) 

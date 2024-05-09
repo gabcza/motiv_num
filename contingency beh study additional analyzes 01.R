@@ -22,6 +22,25 @@ options(scipen = 999)
 #data.long <- read.csv(data contingency beh study clean long data.csv")
 
 
+#topic
+data.long$topic <- as.factor(data.long$topic)
+data.long <- data.long %>% 
+  mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
+levels(data.long$topic)
+
+
+# Remove responses below X seconds
+x <- data.long %>% 
+  filter(rt >= 20) 
+nrow(x)
+# >=10 seconds: 1362
+# >=15 seconds: 1312
+# >=20 seconds: 1256
+
+# remove responses below 10 seconds
+data.long <- data.long %>% filter(rt >= 10)
+
+
 #----Main effect of ideology 
 #Climat
 r1.climate <- lm(data = data.long, prior.climate.pos ~ age_s_c + gender + educ_s_c + ideology)    
