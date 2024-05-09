@@ -98,7 +98,7 @@ m0.q1.4.hom <- lm(data = data.long %>% filter(topic == "hom"),
                   resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.hom)
 
-#---- #Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
+#---- Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
 #Ideology: self-identification in terms of cultural ideology (progressive vs. conservative)
 m0.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4), # remove people with ideology = 4
