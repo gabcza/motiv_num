@@ -109,7 +109,7 @@ data <- data %>%
 #educ_values <- unique(data$educ)
 #educ_values
 
-#----- recode demographic data ----
+#----- recode ideology ----
 data <- data %>%
   mutate(
     polit.lr = case_when(polit.lr <= 7 ~ polit.lr,
@@ -170,7 +170,6 @@ summary(data$ideology) #M = 4.47
 # nfc mean
 
 #numeracy correct responses
-#order as in Stagnaro
 data <- data %>%
   mutate(
   # GC: this I'd change into 0s being someone responding wrong and not NA
@@ -275,7 +274,7 @@ nrow(data) # N = 865
 
 ## remove people who failed att chceks
 #att.check.birthday - correct ans = 1   
-#att.memory1 - correct ans = nie, Qualtrics coding: Yes = 5, No = 4, so 4 is correct ans
+#att.memory1 - correct ans = nie, Qualtrics coding: Yes = 5, No = 4, so 4 is correct response
 #att.memory2 - correct ans - "kot"
 data <- data %>%
   mutate(
@@ -289,9 +288,6 @@ data <- data %>%
     total_att_check = att.check1.cor + att.check2.cor + att.check3.cor
   ) %>%
   filter(total_att_check == 3) #N = 532
-
-#Remove the 'total_att_check' column if no longer needed
-#data <- select(data, -total_att_check)
 
 #remove people who admit failing instructions -- NOT EXCLUDED
 #data <- data %>% filter(instruction.check == 1)

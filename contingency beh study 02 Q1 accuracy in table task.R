@@ -26,25 +26,43 @@ data.long <- data.long %>%
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
 
-# Remove responses below X seconds
-x <- data.long %>% 
-  filter(rt >= 20) 
-nrow(x)
-# >=10 seconds: 1362
-# >=15 seconds: 1312
-# >=20 seconds: 1256
+# check means for priors 
+means <- data.long %>% 
+  group_by(subj.id, topic, condition) %>% slice(1) %>% ungroup() %>%
+  #group_by(topic, condition) %>% 
+  summarize(m.clim.pos = mean(prior.climate.pos),
+            m.gmo.pos = mean(prior.gmo.pos),
+            m.hom.pos = mean(prior.hom.pos),
+            m.clim.cert = mean(prior.climate.cert),
+            m.gmo.cert = mean(prior.gmo.cert),
+            m.hom.cert = mean(prior.hom.cert),
+            m.clim.imp = mean(prior.climate.imp),
+            m.gmo.imp = mean(prior.gmo.imp),
+            m.hom.imp = mean(prior.hom.imp),
+            #m.clim.diff = mean(prior.climate.diff),
+            #m.gmo.diff = mean(prior.gmo.diff),
+            #m.hom.diff = mean(prior.hom.diff)
+            ) %>%
+  gather("var", "value") %>%
+  separate(var, into = c("m", "topic", "question")) %>%
+  mutate(question = factor(question, levels = c("pos", "cert", "imp")))
+  #spread(question, value) %>%
+  #select(topic, pos, cert, imp, diff)
+means
+means %>% ggplot(aes(topic, value, fill = topic)) + 
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~question) + 
+  theme_classic()
 
-# remove responses below 10 seconds
-data.long <- data.long %>% filter(rt >= 10)
-
-#---- Q1.2: Are people more accurate when high on numeracy? and   ----
+#---- Q1.2: Are people more accurate given task difficulty and numeracy skills?   ----
 m0.q1.1 <- lmer(data = data.long,
              #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
              #data = data.long %>% filter(prior.conc != 0), 
            resp ~ condition.binary +
              order + topic + (1|subj.id)) 
 summary(m0.q1.1)
-m0.q1.1 %>% ggemmeans(c("topic", "condition.binary")) %>% plot() 
+m0.q1.1 %>% ggemmeans(c("condition.binary")) %>% plot() +
+  labs(title = "", y = "Accuracy", color = "Difficulty")
 
 # check differences between the conditions
 m0.q1.2 <- lmer(data = data.long,
@@ -85,18 +103,29 @@ m0.q1.4.clim <- lm(data = data.long %>% filter(topic == "clim"),
                 #data = data.long %>% filter(prior.conc != 0), 
                 resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.clim)
+anova(m0.q1.4.clim)
+m0.q1.4.clim %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Accuracy", y = "Accuracy", x = "Numeracy", color = "Difficulty")
 # gmo
 m0.q1.4.gmo <- lm(data = data.long %>% filter(topic == "gmo"),
                    #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
                    #data = data.long %>% filter(prior.conc != 0), 
-                   resp ~ condition.binary * num_c) 
+                   resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.gmo)
+m0.q1.4.gmo %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Accuracy", y = "Accuracy", x = "Numeracy", color = "Difficulty")
 # homeopathy
 m0.q1.4.hom <- lm(data = data.long %>% filter(topic == "hom"),
                   #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
                   #data = data.long %>% filter(prior.conc != 0), 
                   resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.hom)
+m0.q1.4.hom %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Accuracy", y = "Accuracy", x = "Numeracy", color = "Difficulty")
+
+# check numeracy per condition
+data.long %>% group_by(condition, topic, prior.conc) %>%
+  summarize(mean = mean(num_c, na.rm = T), sd = sd(num_c, na.rm = T),)
 
 #---- Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
@@ -111,10 +140,10 @@ VarCorr(m0.q1.1.ideology) %>%
 
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
-m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4) %>%
-                           filter(topic != "hom"),
+m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4),# %>% filter(topic != "hom"),
                          resp ~ ideology.conc + 
-                           topic + order +
+                           #topic + 
+                           order +
                            (1|subj.id))
 summary(m1.q1.1.ideology)
 anova(m1.q1.1.ideology) #

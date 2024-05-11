@@ -66,7 +66,7 @@ car::vif(r1.hom)
 
 #Interaction: ideology x num
 
-#Climat
+#Climate
 r2.climate <- lm(data = data.long, prior.climate.pos ~ age_s_c + gender + educ_s_c + ideology * num_c)    
 summary(r2.climate)
 r2.climate %>% ggemmeans(terms = c("num_c", "ideology")) %>% plot()
@@ -89,3 +89,4 @@ car::vif(r2.hom)
 sjPlot::tab_model(r1.climate, r1.gmo, r1.hom) 
 #for polit cult x num
 sjPlot::tab_model(r2.climate, r2.gmo, r2.hom)
+
