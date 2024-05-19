@@ -101,57 +101,117 @@ summary(m0.q1.4.hom)
 #---- Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
 #Ideology: self-identification in terms of cultural ideology (progressive vs. conservative)
-m0.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4), # remove people with ideology = 4
+
+#Models in which participants with ideology = 4 were excluded are not converge, 
+#so models for ideology are calculated in two ways: a) taking into account all 
+#observations and b) without the topic of homeopathy and without pp with ideology = 4
+
+#-----a) all observations----
+m0.q1.1a.ideology <- lmer(data = data.long, #%>% filter(ideology != 4), # remove people with ideology = 4
                          resp ~ 1 + (1|subj.id)) 
-summary(m0.q1.1.ideology)
-VarCorr(m0.q1.1.ideology) %>% 
+summary(m0.q1.1a.ideology)
+VarCorr(m0.q1.1a.ideology) %>% 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc) #0.1 due to subj
+  dplyr::select(grp, icc) #0.06 due to subj
 
 #add ideology concordance
 # GC: jak modele się nie wyliczą to możemy spróbować osobno je dać albo opuścić topic
-m1.q1.1.ideology <- lmer(data = data.long %>% filter(ideology != 4) %>%
-                           filter(topic != "hom"),
+m1.q1.1a.ideology <- lmer(data = data.long, #%>% filter(ideology != 4) 
                          resp ~ ideology.conc + 
                            topic + order +
                            (1|subj.id))
-summary(m1.q1.1.ideology)
-anova(m1.q1.1.ideology) #
+summary(m1.q1.1a.ideology)
+anova(m1.q1.1a.ideology) #
 
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
 # GC: nie wiem czy tak bym liczyła ten model (to samo co wyżej z wyłączeniem osób z id = 4)
 # ale na razie zostawmy; możemy przesunąć te modele z Q1.2 wyżej (poza analizy concordance
 # a ideologią albo priors)
-m2.q1.2.ideology <- lmer(data = data.long %>% filter(ideology != 4), 
+m2.q1.2a.ideology <- lmer(data = data.long, #%>% filter(ideology != 4), 
                          resp ~ num_c + 
                            topic + order + (1|subj.id))
-summary(m2.q1.2.ideology)
-anova(m2.q1.2.ideology)
-m2.q1.2.ideology %>% ggemmeans(terms = "num_c") %>% plot()
-m2.q1.2.ideology %>% ggemmeans(terms = "topic") %>% plot()
-m2.q1.2.ideology %>% ggemmeans(terms = c("num_c", "topic")) %>% plot()
+summary(m2.q1.2a.ideology)
+anova(m2.q1.2a.ideology)
+m2.q1.2a.ideology %>% ggemmeans(terms = "num_c") %>% plot()
+m2.q1.2a.ideology %>% ggemmeans(terms = "topic") %>% plot()
+m2.q1.2a.ideology %>% ggemmeans(terms = c("num_c", "topic")) %>% plot()
 
 # Q1.3. What are the interactive effects of ideology and cognitive sophistication on accuracy?
-m3.q1.3.ideology <-lmer(data = data.long %>% filter(ideology != 4), 
+m3.q1.3a.ideology <-lmer(data = data.long, #%>% filter(ideology != 4), 
                         resp ~ ideology.conc * num_c +
                           topic + order + (1|subj.id))
-summary(m3.q1.3.ideology)
-anova(m3.q1.3.ideology)
-m3.q1.3.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc")) %>% plot() #not for continuous var
-#fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
+summary(m3.q1.3a.ideology)
+anova(m3.q1.3a.ideology)
+m3.q1.3a.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc")) %>% plot() 
 
 #Q1.4. Are these effects further moderated by task difficulty?
 #ideology +  difficulty interaction 
-m4.q1.4.ideology <-lmer(data = data.long %>% filter(ideology != 4),
+m4.q1.4a.ideology <-lmer(data = data.long, #%>% filter(ideology != 4),
                         resp ~ ideology.conc * num_c * condition.binary + 
                           topic + order + (1|subj.id))
 #fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
-summary(m4.q1.4.ideology) #ideology.conc and interaction sig
-anova(m4.q1.4.ideology)
-#m4.q1.4.ideology %>% ggemmeans(terms = c("num_c", "ideology.conc", "condition.binary")) %>% plot() #not for continuous var
-pred.val.m4.q1.4.ideology <- ggpredict(m4.q1.4.ideology, terms = c("num_c", "ideology.conc", "condition.binary"))
-plot(pred.val.m4.q1.4.ideology)
+summary(m4.q1.4a.ideology) #ideology.conc and interaction sig
+anova(m4.q1.4a.ideology)
+
+pred.val.m4.q1.4a.ideology <- ggpredict(m4.q1.4a.ideology, terms = c("num_c", "ideology.conc", "condition.binary"))
+plot(pred.val.m4.q1.4a.ideology)
+
+#----b) without the homeopathy topic and without pp with ideology = 4
+
+m0.q1.1b.ideology <- lmer(data = data.long %>% filter(ideology != 4) # remove people with ideology = 4
+                          %>% filter(topic != "hom"),
+                          resp ~ 1 + (1|subj.id)) 
+summary(m0.q1.1b.ideology)
+VarCorr(m0.q1.1b.ideology) %>% 
+  as_tibble() %>%
+  mutate(icc=vcov/sum(vcov)) %>%
+  dplyr::select(grp, icc) #0.05 due to subj
+
+#add ideology concordance
+m1.q1.1b.ideology <- lmer(data = data.long %>% filter(ideology != 4) # remove people with ideology = 4
+                          %>% filter(topic != "hom"),
+                          resp ~ ideology.conc + 
+                            topic + order +
+                            (1|subj.id))
+summary(m1.q1.1b.ideology)
+anova(m1.q1.1b.ideology) 
+#Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
+# GC: nie wiem czy tak bym liczyła ten model (to samo co wyżej z wyłączeniem osób z id = 4)
+# ale na razie zostawmy; możemy przesunąć te modele z Q1.2 wyżej (poza analizy concordance
+# a ideologią albo priors)
+m2.q1.2b.ideology <- lmer(data = data.long %>% filter(ideology != 4) # remove people with ideology = 4
+                          %>% filter(topic != "hom"),
+                          resp ~ num_c + 
+                          topic + order + (1|subj.id))
+
+summary(m2.q1.2b.ideology)
+anova(m2.q1.2b.ideology)
+m2.q1.2b.ideology %>% ggemmeans(terms = "num_c") %>% plot()
+m2.q1.2b.ideology %>% ggemmeans(terms = "topic") %>% plot()
+m2.q1.2b.ideology %>% ggemmeans(terms = c("num_c", "topic")) %>% plot()
+
+# Q1.3. What are the interactive effects of ideology and cognitive sophistication on accuracy?
+m3.q1.3b.ideology <-lmer(data = data.long%>% filter(ideology != 4) # remove people with ideology = 4
+                         %>% filter(topic != "hom"),
+                         resp ~ ideology.conc * num_c +
+                           topic + order + (1|subj.id))
+summary(m3.q1.3b.ideology)
+anova(m3.q1.3b.ideology)
+m3.q1.3b.ideology  %>% ggpredict(terms = c("num_c", "ideology.conc")) %>% plot() 
+
+#Q1.4. Are these effects further moderated by task difficulty?
+#ideology +  difficulty interaction 
+m4.q1.4b.ideology <-lmer(data = data.long %>% filter(ideology != 4) # remove people with ideology = 4
+                         %>% filter(topic != "hom"),
+                         resp ~ ideology.conc * num_c * condition.binary + 
+                           topic + order + (1|subj.id))
+
+summary(m4.q1.4b.ideology) 
+anova(m4.q1.4b.ideology)
+
+pred.val.m4.q1.4b.ideology <- ggpredict(m4.q1.4b.ideology, terms = c("num_c", "ideology.conc", "condition.binary"))
+plot(pred.val.m4.q1.4b.ideology)
 
 #---- Concordance with prior position ----
 # null model

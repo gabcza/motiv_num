@@ -83,46 +83,102 @@ anova(m4.q3.ef_acc.prior) #diff
 m4.q3.ef_acc.prior %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
 
 #---- Concordance with ideology----
-m1.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4), # GC: dodajemy filtrowanie ideology != 4 (?)
+#Ideology: self-identification in terms of cultural ideology (progressive vs. conservative)
+
+#Models in which participants with ideology = 4 were excluded are not converge, 
+#so models for ideology are calculated in two ways: a) taking into account all 
+#observations and b) without the topic of homeopathy and without pp with ideology = 4
+
+#----a) all observations----
+m1.q3a.ef_acc.ideology <- lmer(data = data.long, #%>% filter(ideology != 4), # GC: dodajemy filtrowanie ideology != 4 (?)
                               resp ~ 1 +  eff.index +
                               topic + order + (1|subj.id)) 
-#boundary (singular) fit: see help('isSingular')
-summary(m1.q3.ef_acc.ideology)
-anova(m1.q3.ef_acc.ideology) 
-m1.q3.ef_acc.ideology %>%
+
+summary(m1.q3a.ef_acc.ideology)
+anova(m1.q3a.ef_acc.ideology) 
+m1.q3a.ef_acc.ideology %>%
   ggemmeans(terms = "eff.index") %>%
   plot()
 
 #add interaction
-m2.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
+m2.q3a.ef_acc.ideology <- lmer(data = data.long, #%>% filter(ideology != 4),
                               resp ~ eff.index * ideology.conc +
                               topic + order + (1|subj.id)) 
 
-summary(m1.q3.ef_acc.ideology)
-anova(m1.q3.ef_acc.ideology) 
-m2.q3.ef_acc.ideology  %>% ggpredict(terms = c("eff.index", "ideology.conc")) %>% plot()
+summary(m1.q3a.ef_acc.ideology)
+anova(m1.q3a.ef_acc.ideology) 
+m2.q3a.ef_acc.ideology  %>% ggpredict(terms = c("eff.index", "ideology.conc")) %>% plot()
 
 #+difficulty
-m3.q3.ef_acc.ideology<- lmer(data = data.long %>% filter(ideology != 4), 
+m3.q3a.ef_acc.ideology<- lmer(data = data.long, #%>% filter(ideology != 4), 
                              resp ~ eff.index * ideology.conc * condition.binary +
                                topic + order + (1|subj.id)) 
-summary(m3.q3.ef_acc.ideology) 
-anova(m3.q3.ef_acc.ideology) 
-m3.q3.ef_acc.ideology  %>% ggpredict(terms = c("eff.index","ideology.conc", "condition.binary")) %>% plot()
+summary(m3.q3a.ef_acc.ideology) 
+anova(m3.q3a.ef_acc.ideology) 
+m3.q3a.ef_acc.ideology  %>% ggpredict(terms = c("eff.index","ideology.conc", "condition.binary")) %>% plot()
 
 #Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
 #Does increased effort investment among the sophisticated leads to more or less accurate 
 #responding? Does it depend on concordance?
-m4.q3.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4),
+m4.q3a.ef_acc.ideology <- lmer(data = data.long, #%>% filter(ideology != 4),
                               resp ~ eff.index * ideology.conc * condition.binary * num_c +
                               topic + order + (1|subj.id)) 
 
-summary(m4.q3.ef_acc.ideology)
-anova(m4.q3.ef_acc.ideology)
+summary(m4.q3a.ef_acc.ideology)
+anova(m4.q3a.ef_acc.ideology)
 #ggemmeans(m4.q3.ef_acc.ideology, terms = c("eff.index", "num_c")) %>%
   #plot()
-m4.q3.ef_acc.ideology %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
+m4.q3a.ef_acc.ideology %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
 
-ggpredict(m4.q3.ef_acc.ideology, terms = c("num_c", "ideology.conc")) %>%
+ggpredict(m4.q3a.ef_acc.ideology, terms = c("num_c", "ideology.conc")) %>%
+  plot()
+
+#---- b)without the homeopathy topic and without pp with ideology = 4 ----
+
+m1.q3b.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4) 
+                               %>% filter(topic != "hom"),
+                               resp ~ 1 +  eff.index +
+                                 topic + order + (1|subj.id)) 
+
+summary(m1.q3b.ef_acc.ideology)
+anova(m1.q3b.ef_acc.ideology) 
+m1.q3b.ef_acc.ideology %>%
+  ggemmeans(terms = "eff.index") %>%
+  plot()
+
+#add interaction
+m2.q3b.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4) 
+                               %>% filter(topic != "hom"),
+                               resp ~ eff.index * ideology.conc +
+                                 topic + order + (1|subj.id)) 
+
+summary(m1.q3b.ef_acc.ideology)
+anova(m1.q3b.ef_acc.ideology) 
+m2.q3b.ef_acc.ideology  %>% ggpredict(terms = c("eff.index", "ideology.conc")) %>% plot()
+
+#+difficulty
+m3.q3b.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4) 
+                               %>% filter(topic != "hom"),
+                              resp ~ eff.index * ideology.conc * condition.binary +
+                                topic + order + (1|subj.id)) 
+summary(m3.q3b.ef_acc.ideology) 
+anova(m3.q3b.ef_acc.ideology) 
+m3.q3b.ef_acc.ideology  %>% ggpredict(terms = c("eff.index","ideology.conc", "condition.binary")) %>% plot()
+
+#Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
+#Does increased effort investment among the sophisticated leads to more or less accurate 
+#responding? Does it depend on concordance?
+m4.q3b.ef_acc.ideology <- lmer(data = data.long %>% filter(ideology != 4) 
+                               %>% filter(topic != "hom"),
+                               resp ~ eff.index * ideology.conc * condition.binary * num_c +
+                                topic + order + (1|subj.id)) 
+
+summary(m4.q3b.ef_acc.ideology)
+anova(m4.q3b.ef_acc.ideology)
+#ggemmeans(m4.q3.ef_acc.ideology, terms = c("eff.index", "num_c")) %>%
+#plot()
+m4.q3b.ef_acc.ideology %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot() 
+
+ggpredict(m4.q3b.ef_acc.ideology, terms = c("num_c", "ideology.conc")) %>%
   plot()
 
