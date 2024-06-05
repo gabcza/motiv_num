@@ -238,6 +238,8 @@ m1.q1.1.prior %>% ggemmeans(terms = "prior.conc") %>%
        x = "Concordance with priors", y = "Accuracy", fill = "Concordance") + 
   #coord_cartesian(ylim = c(0,1)) +
   theme_minimal()
+
+m1.q1.1.prior %>% ggemmeans(terms = "order") %>% plot()
                                                           
 #Q1.2. Are people more accurate when high (vs. low) on cognitive sophistication?
 # add numeracy 
