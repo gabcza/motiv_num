@@ -17,7 +17,7 @@ options(scipen = 999)
 #---- Load data in a long format ----
 # use the script called '[main study] contingency beh study 01 clean data.R"
 # or saved data
-#data.long <- read.csv(data contingency beh study clean long data.csv")
+#data.long <- read.csv("data contingency beh study clean long data.csv")
 
 
 #topic
@@ -182,3 +182,47 @@ m4.q3b.ef_acc.ideology %>% ggemmeans(c("eff.index", "num_c[meansd]")) %>% plot()
 ggpredict(m4.q3b.ef_acc.ideology, terms = c("num_c", "ideology.conc")) %>%
   plot()
 
+#----Effort as RT for priors----
+
+#---- Q3a. Does effort investment lead to more accurate responding? Does it depend on concordance?----
+#---- Concordance with priors----
+# main effect of effort on accuracy of responding
+m1.q3.ef_acc.prior_rt <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
+                              resp ~ log(rt) +
+                                topic + order + (1|subj.id)) #boundary (singular) fit:
+summary(m1.q3.ef_acc.prior_rt)
+anova(m1.q3.ef_acc.prior_rt)
+m1.q3.ef_acc.prior_rt %>%
+  ggemmeans(terms = "rt") %>%
+  plot()
+
+#add interaction with concordance
+m2.q3.ef_acc.prior_rt <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
+                              resp ~ log(rt) * prior.conc +
+                                topic + order + (1|subj.id)) 
+summary(m2.q3.ef_acc.prior_rt)
+anova(m2.q3.ef_acc.prior_rt) 
+m2.q3.ef_acc.prior_rt  %>% ggemmeans(terms = c("rt", "prior.conc")) %>% plot()
+
+
+#+difficulty
+m3.q3.ef_acc.prior_rt<- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
+                             resp ~ log(rt) * prior.conc * condition.binary +
+                               topic + order + (1|subj.id)) 
+summary(m3.q3.ef_acc.prior_rt)
+anova(m3.q3.ef_acc.prior_rt) 
+m3.q3.ef_acc.prior_rt  %>% ggemmeans(terms = c("rt", "prior.conc",  "condition.binary")) %>% plot()
+
+#Q3b: Does the relationship between effort and accuracy depend on cognitive sophistication?
+#Does increased effort investment among the sophisticated leads to more or less accurate 
+#responding? Does it depend on concordance?
+m4.q3.ef_acc.prior_rt <- lmer(data = data.long %>% filter(prior.conc != "neutr"), 
+                              resp ~ 1 +  log(rt) + prior.conc + condition.binary + 
+                                log(rt)*prior.conc*condition.binary*num_c +
+                                topic + order + (1|subj.id)) 
+summary(m4.q3.ef_acc.prior_rt)
+anova(m4.q3.ef_acc.prior_rt) #diff
+#ggemmeans(m4.q3.ef_acc.prior, terms = c("log(rt)", "num_c")) %>%
+#  plot()
+
+m4.q3.ef_acc.prior_rt %>% ggemmeans(c("rt", "num_c[meansd]")) %>% plot() 

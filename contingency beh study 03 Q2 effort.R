@@ -226,7 +226,7 @@ VarCorr(m0.q2.1.ef.prior) %>% # get variance components (these are SDs)
   mutate(icc = vcov / sum(vcov)) %>%
   dplyr::select(grp, icc) #subj: .72
 
-# add argument ideology concordance
+# add argument prior concordance
 m1.q2.1.ef.prior <- lmer(data = data.long %>% filter(prior.conc  != "neutr"),
                          eff.index  ~ prior.conc + 
                            topic + order + (1|subj.id))
@@ -304,6 +304,27 @@ m5.q2.2.ef.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
 summary(m5.q2.2.ef.prior) 
 anova(m5.q2.2.ef.prior)
 m5.q2.2.ef.prior  %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% plot()
+
+
+predicted_values <- ggemmeans(m5.q2.2.ef.prior, terms = c("num_c", "prior.conc", "condition.binary"))
+
+# Create the plot
+plot <- ggplot(predicted_values, aes(x = x, y = predicted, color = group, fill = group)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, color = NA) +
+  labs(x = "Numeracy", y = "Subjective Effort", color = "Concordance", fill = "Concordance") +
+  theme_classic() + 
+  theme(
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 18),  # Enlarge x-axis title
+    axis.title.y = element_text(size = 18)   # Enlarge y-axis title
+  ) +
+  facet_wrap(~ facet, ncol = 2)  # Create separate plots for each condition
+
+# Print the plot
+print(plot)
+
 
 
 
@@ -522,8 +543,10 @@ sjPlot::tab_model(m5.q2.2.rt.prior)
 
 
 m5.q2.2.rt.prior  %>% ggemmeans(terms = c("num_c", "prior.conc","condition.binary", "topic")) %>% plot()
+m5.q2.2.rt.prior  %>% ggemmeans(terms = c("num_c", "prior.conc","condition.binary")) %>% plot()
 
 emm <- emmeans(m5.q2.2.rt.prior, ~ num_c * prior.conc | topic)
+summary(emm)
 
 emmeans_df <- as.data.frame(emm)
 emmeans_df$num_c <- as.numeric(emmeans_df$num_c)
@@ -558,4 +581,24 @@ m6.q2.2.rt.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
 summary(m6.q2.2.rt.prior) 
 anova(m6.q2.2.rt.prior)
 m6.q2.2.rt.prior  %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% plot()
+
+predicted_values <- ggemmeans(m6.q2.2.rt.prior, terms = c("num_c", "prior.conc", "condition.binary"))
+
+# Create the plot
+plot <- ggplot(predicted_values, aes(x = x, y = predicted, color = group, fill = group)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, color = NA) +
+  labs(x = "Numeracy", y = "RT", color = "Concordance", fill = "Concordance") +
+  theme_classic() + 
+  theme(
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 18),  # Enlarge x-axis title
+    axis.title.y = element_text(size = 18)   # Enlarge y-axis title
+  ) +
+  facet_wrap(~ facet, ncol = 2)  # Create separate plots for each condition
+
+# Print the plot
+print(plot)
+
 

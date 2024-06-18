@@ -276,7 +276,97 @@ m4.q1.4.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")
   labs(title = "", x = "Concordance with priors", y = "Accuracy", 
        color = "Concordance") #+ 
   #coord_cartesian(ylim = c(0,1)) +
-  #theme_classic()
+  theme_classic()
+  
+  
+  # separate for topics
+  #climate
+  # Fit the model
+  m4.q1.4.prior.clim <- lm(data = data.long %>% filter(prior.conc != "neutr" & topic == "clim"),
+                           resp ~ prior.conc * num_c * condition.binary + order)
+  
+  summary(m4.q1.4.prior.clim)
+  anova(m4.q1.4.prior.clim)
+  
+  predicted_values_clim <- ggemmeans(m4.q1.4.prior.clim, terms = c("num_c", "prior.conc", "condition.binary"))
+  
+  # Create the plot
+  plot_clim <- ggplot(predicted_values_clim, aes(x = x, y = predicted, color = group, fill = group)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, color = NA) +
+    labs(title = "Climate", x = "Numeracy", y = "Accuracy", color = "Concordance", fill = "Concordance") +
+    theme_classic() + 
+    theme(
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(size = 22, face = "bold"),  # Enlarge and bold title
+      axis.title.x = element_text(size = 18),  # Enlarge x-axis title
+      axis.title.y = element_text(size = 18)   # Enlarge y-axis title
+    ) +
+    facet_wrap(~ facet, ncol = 1)  # Create separate plots for each condition
+  
+  # Print the plot
+  print(plot_clim)
+  
+  #gmo
+  m4.q1.4.prior.gmo <- lm(data = data.long %>% filter(prior.conc != "neutr" & topic == "gmo"),
+                           resp ~ prior.conc * num_c * condition.binary + order)
+  
+  summary(m4.q1.4.prior.gmo)
+  anova(m4.q1.4.prior.gmo)
+  
+  predicted_values_gmo <- ggemmeans(m4.q1.4.prior.gmo, terms = c("num_c", "prior.conc", "condition.binary"))
+  
+  # Create the plot
+  plot_gmo <- ggplot(predicted_values_gmo, aes(x = x, y = predicted, color = group, fill = group)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, color = NA) +
+    labs(title = "GMO", x = "Numeracy", y = "Accuracy", color = "Concordance", fill = "Concordance") +
+    theme_classic() + 
+    theme(
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(size = 22, face = "bold"),
+      axis.title.x = element_text(size = 18),  # Enlarge x-axis title
+      axis.title.y = element_text(size = 18) # Enlarge and bold title
+    ) +
+    facet_wrap(~ facet, ncol = 1)  # Create separate plots for each condition
+  
+  # Print the plot
+  print(plot_gmo)
+  
+  #hom
+  m4.q1.4.prior.hom <- lm(data = data.long %>% filter(prior.conc != "neutr" & topic == "hom"),
+                          resp ~ prior.conc * num_c * condition.binary + order)
+  
+  summary(m4.q1.4.prior.hom)
+  anova(m4.q1.4.prior.hom)
+  
+  predicted_values_hom <- ggemmeans(m4.q1.4.prior.hom, terms = c("num_c", "prior.conc", "condition.binary"))
+  
+  # Create the plot
+  plot_hom <- ggplot(predicted_values_hom, aes(x = x, y = predicted, color = group, fill = group)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, color = NA) +
+    labs(title = "Homeopathy", x = "Numeracy", y = "Accuracy", color = "Concordance", fill = "Concordance") +
+    theme_classic() + 
+    theme(
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(size = 22, face = "bold"),
+      axis.title.x = element_text(size = 18),  # Enlarge x-axis title
+      axis.title.y = element_text(size = 18) # Enlarge and bold title
+    ) +
+    facet_wrap(~ facet, ncol = 1)  # Create separate plots for each condition
+  
+  # Print the plot
+  print(plot_hom)
+  
+  
+  
+  
+  
+  
 
 # add interaction with a topic (ten model do zastanowienia)
 m5.q1.5.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
