@@ -14,6 +14,7 @@ library(lmerTest)
 library(ggeffects)
 options(scipen = 999)
 
+
 #---- Load data in a long format ----
 # use the script called 'contingency beh study 2 01 clean data.R"
 # or saved data
@@ -25,6 +26,79 @@ data.long$topic <- as.factor(data.long$topic)
 data.long <- data.long %>% 
   mutate(topic = factor(topic, levels = c("hom", "clim", "gmo")))
 levels(data.long$topic)
+
+#----position, cert and imp for topics----
+#position
+summary_pos <- data.long %>%
+  summarize(
+    climate = mean(prior.climate.pos, na.rm = TRUE),
+    gmo = mean(prior.gmo.pos, na.rm = TRUE),
+    hom = mean(prior.hom.pos, na.rm = TRUE)
+  )
+
+# Convert to long format for plotting
+summary_pos_long <- summary_pos %>%
+  pivot_longer(cols = everything(), names_to = "topic", values_to = "mean_position")
+
+# Rename the issues to remove ".pos"
+summary_pos_long$issue <- sub("\\.pos", "", summary_pos_long$topic)
+
+
+ggplot(summary_pos_long, aes(x = topic, y = mean_position, fill = topic)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Mean Position for Each Topic",
+       x = "Topic",
+       y = "Mean Position") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14))
+
+
+#cert
+summary_cert <- data.long %>%
+  summarize(
+    climate = mean(prior.climate.cert, na.rm = TRUE),
+    gmo = mean(prior.gmo.cert, na.rm = TRUE),
+    hom = mean(prior.hom.cert, na.rm = TRUE)
+  )
+
+# Convert to long format for plotting
+summary_cert_long <- summary_cert %>%
+  pivot_longer(cols = everything(), names_to = "topic", values_to = "mean_cert")
+
+# Rename the issues to remove ".cert"
+summary_cert_long$issue <- sub("\\.cert", "", summary_cert_long$topic)
+
+ggplot(summary_cert_long, aes(x = topic, y = mean_cert, fill = topic)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Mean Certainty for Each Topic",
+       x = "Topic",
+       y = "Mean Certainty") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14))
+
+#Importance
+summary_imp <- data.long %>%
+  summarize(
+    climate = mean(prior.climate.imp, na.rm = TRUE),
+    gmo = mean(prior.gmo.imp, na.rm = TRUE),
+    hom = mean(prior.hom.imp, na.rm = TRUE)
+  )
+
+# Convert to long format for plotting
+summary_imp_long <- summary_imp %>%
+  pivot_longer(cols = everything(), names_to = "topic", values_to = "mean_importance")
+
+# Rename the issues to remove ".imp"
+summary_imp_long$issue <- sub("\\.imp", "", summary_imp_long$topic)
+
+ggplot(summary_imp_long, aes(x = topic, y = mean_importance, fill = topic)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Mean Importance for Each Topic",
+       x = "Topic",
+       y = "Mean Importance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14))
+
 
 #---- Q1.2: Are people more accurate when high on numeracy? and   ----
 m0.q1.1 <- lmer(data = data.long,
@@ -74,18 +148,29 @@ m0.q1.4.clim <- lm(data = data.long %>% filter(topic == "clim"),
                 #data = data.long %>% filter(prior.conc != 0), 
                 resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.clim)
+
+m0.q1.4.clim %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Climate", y = "Accuracy", x = "Numeracy", color = "Difficulty")
+
 # gmo
 m0.q1.4.gmo <- lm(data = data.long %>% filter(topic == "gmo"),
                    #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
                    #data = data.long %>% filter(prior.conc != 0), 
                    resp ~ condition.binary * num_c) 
 summary(m0.q1.4.gmo)
+
+
+m0.q1.4.gmo %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "GMO", y = "Accuracy", x = "Numeracy", color = "Difficulty")
 # homeopathy
 m0.q1.4.hom <- lm(data = data.long %>% filter(topic == "hom"),
                   #data = data.long, # %>% filter(ideology != 4), # remove people with ideology = 4
                   #data = data.long %>% filter(prior.conc != 0), 
                   resp ~ condition.binary * num_c + order) 
 summary(m0.q1.4.hom)
+
+m0.q1.4.hom %>% ggemmeans(c("num_c", "condition.binary")) %>% plot() +
+  labs(title = "Homeopathy", y = "Accuracy", x = "Numeracy", color = "Difficulty")
 
 #---- Q1.1. Are people less accurate when conclusions are discordant with their ideology or priors? ---- 
 #---- Concordance with ideology ----
@@ -143,6 +228,8 @@ m4.q1.4a.ideology <-lmer(data = data.long, #%>% filter(ideology != 4),
 summary(m4.q1.4a.ideology) #ideology.conc and interaction sig
 anova(m4.q1.4a.ideology)
 
+#sjPlot::tab_model(m4.q1.4a.ideology)
+
 pred.val.m4.q1.4a.ideology <- ggpredict(m4.q1.4a.ideology, terms = c("num_c", "ideology.conc", "condition.binary"))
 plot(pred.val.m4.q1.4a.ideology)
 
@@ -155,7 +242,7 @@ summary(m0.q1.1b.ideology)
 VarCorr(m0.q1.1b.ideology) %>% 
   as_tibble() %>%
   mutate(icc=vcov/sum(vcov)) %>%
-  dplyr::select(grp, icc) #0.05 due to subj
+  dplyr::select(grp, icc) #0.12 due to subj
 
 #add ideology concordance
 m1.q1.1b.ideology <- lmer(data = data.long %>% filter(ideology != 4) # remove people with ideology = 4
@@ -248,7 +335,7 @@ m3.q1.3.prior <- lmer(data = data.long %>% filter(prior.conc != "neutr"),
 summary(m3.q1.3.prior)
 anova(m3.q1.3.prior)
 m3.q1.3.prior  %>% ggemmeans(terms = c("num_c", "prior.conc")) %>% plot() +
-  labs(title = "", x = "Concordance with priors", y = "Accuracy", 
+  labs(title = "", x = "Numeracy", y = "Accuracy", 
        color = "Concordance") + 
   #coord_cartesian(ylim = c(0,1)) +
   theme_minimal()
@@ -262,7 +349,7 @@ summary(m4.q1.4.prior)
 anova(m4.q1.4.prior)
 m4.q1.4.prior %>% ggemmeans(terms = c("num_c", "prior.conc", "condition.binary")) %>% 
   plot() + 
-  labs(title = "", x = "Concordance with priors", y = "Accuracy", 
+  labs(title = "", x = "Numeracy", y = "Accuracy", 
        color = "Concordance") #+ 
   #coord_cartesian(ylim = c(0,1)) +
   theme_classic()

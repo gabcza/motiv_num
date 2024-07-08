@@ -186,31 +186,67 @@ summary(data$ideology) #M = 4.51
 
 #numeracy correct responses
 #order as in Stagnaro
+#data <- data %>%
+#  mutate(
+  # GC: this I'd change into 0s being someone responding wrong and not NA
+#  num1.cor = case_when(num1 == 500 ~ 1, num1 != 500 ~ 0, is.na(num1) ~ NA_real_), # resp = 500 (times) is correct
+#  num2.cor = case_when(num2 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (people) is correct
+#  num3.cor = case_when(num3 == 0.1 ~ 1, num1 != 0.1 ~ 0, is.na(num1) ~ NA_real_), #resp = 0.1 (%) is correct
+#  num4.cor = case_when(num4 == 20 ~ 1, num1 != 20 ~ 0, is.na(num1) ~ NA_real_), # resp = 20 (%) is correct
+#  num5.cor = case_when(num5 == 100 ~ 1, num1 != 100 ~ 0, is.na(num1) ~ NA_real_), # resp = 100 (people) is correct
+#  num6.cor = case_when((num6_4 == 9 & num6_5 == 19 ~ 1),
+#                       (num6_4 != 9 | num6_5 != 19 ~ 0),
+#                       (is.na(num6_4) | is.na(num6_5) ~ NA_real_)),# resp = 9/19 is correct
+#  num7.cor = case_when(num7 == 4 ~ 1, num1 != 4 ~ 0, is.na(num1) ~ NA_real_), # resp = 4 (y.o) is correct
+#  num8.cor = case_when(num8 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (sec) is correct
+#  num9.cor = case_when(num9 == 39 ~ 1, num1 != 39 ~ 0, is.na(num1) ~ NA_real_) # resp = 39 (days) is correct
+# )
+
+#there was a mistake here in num evaluating. Updating code below (4.07.24)
+#corr between num and wrong coded num = .9997839
+
+#num.cor <- cor(data$num, data$num_w)
+#print(num.cor)
+
 data <- data %>%
   mutate(
-  # GC: this I'd change into 0s being someone responding wrong and not NA
-  num1.cor = case_when(num1 == 500 ~ 1, num1 != 500 ~ 0, is.na(num1) ~ NA_real_), # resp = 500 (times) is correct
-  num2.cor = case_when(num2 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (people) is correct
-  num3.cor = case_when(num3 == 0.1 ~ 1, num1 != 0.1 ~ 0, is.na(num1) ~ NA_real_), #resp = 0.1 (%) is correct
-  num4.cor = case_when(num4 == 20 ~ 1, num1 != 20 ~ 0, is.na(num1) ~ NA_real_), # resp = 20 (%) is correct
-  num5.cor = case_when(num5 == 100 ~ 1, num1 != 100 ~ 0, is.na(num1) ~ NA_real_), # resp = 100 (people) is correct
-  num6.cor = case_when((num6_4 == 9 & num6_5 == 19 ~ 1),
-                       (num6_4 != 9 | num6_5 != 19 ~ 0),
-                       (is.na(num6_4) | is.na(num6_5) ~ NA_real_)),# resp = 9/19 is correct
-  num7.cor = case_when(num7 == 4 ~ 1, num1 != 4 ~ 0, is.na(num1) ~ NA_real_), # resp = 4 (y.o) is correct
-  num8.cor = case_when(num8 == 10 ~ 1, num1 != 10 ~ 0, is.na(num1) ~ NA_real_), # resp = 10 (sec) is correct
-  num9.cor = case_when(num9 == 39 ~ 1, num1 != 39 ~ 0, is.na(num1) ~ NA_real_) # resp = 39 (days) is correct
- )
+    # GC: this I'd change into 0s being someone responding wrong and not NA
+    num1.cor = case_when(num1 == 500 ~ 1, num1 != 500 ~ 0, is.na(num1) ~ NA_real_), # resp = 500 (times) is correct
+    num2.cor = case_when(num2 == 10 ~ 1, num2 != 10 ~ 0, is.na(num2) ~ NA_real_), # resp = 10 (people) is correct
+    num3.cor = case_when(num3 == 0.1 ~ 1, num3 != 0.1 ~ 0, is.na(num3) ~ NA_real_), #resp = 0.1 (%) is correct
+    num4.cor = case_when(num4 == 20 ~ 1, num4 != 20 ~ 0, is.na(num4) ~ NA_real_), # resp = 20 (%) is correct
+    num5.cor = case_when(num5 == 100 ~ 1, num5 != 100 ~ 0, is.na(num5) ~ NA_real_), # resp = 100 (people) is correct
+    num6.cor = case_when((num6_4 == 9 & num6_5 == 19 ~ 1),
+                         (num6_4 != 9 | num6_5 != 19 ~ 0),
+                         (is.na(num6_4) | is.na(num6_5) ~ NA_real_)),# resp = 9/19 is correct
+    num7.cor = case_when(num7 == 4 ~ 1, num7 != 4 ~ 0, is.na(num7) ~ NA_real_), # resp = 4 (y.o) is correct
+    num8.cor = case_when(num8 == 10 ~ 1, num8 != 10 ~ 0, is.na(num8) ~ NA_real_), # resp = 10 (sec) is correct
+    num9.cor = case_when(num9 == 39 ~ 1, num9 != 39 ~ 0, is.na(num9) ~ NA_real_) # resp = 39 (days) is correct
+  )
+
+
 
 num <- c("num1.cor", "num2.cor", "num3.cor", "num4.cor", "num5.cor", 
          "num6.cor", "num7.cor", "num8.cor", "num9.cor")
-psych::alpha(data[num]) #raw alpha = .74/ std alpha = .73
+psych::alpha(data[num]) #raw alpha = .75
 data$num = rowMeans(data[num], na.rm = TRUE) 
 hist(data$num) # 1 - easy, rest rather diff
 paste0("Numeracy scoress: M = ", round(mean(data$num, na.rm = TRUE), 2), ", SD = ", round(sd(data$num, na.rm = TRUE), 2))
-#M = 0.40, SD = 0.25
+#M = 0.43, SD = 0.26
 #create 0 vs 1 scores
 data <- data %>% mutate(num01 = case_when(num == 0 ~ 0, num > 0 ~ 1))# create 0-1 numeracy score
+
+#summary(data$num)
+freq.num <- table(data$num) #on filltered data 46/714 pp have 0 in num
+print(freq.num)
+
+
+#                0 0.111111111111111             0.125 0.142857142857143 0.222222222222222              0.25 
+#46                61                13                 5                95                 5 
+#0.285714285714286 0.333333333333333             0.375 0.444444444444444 0.555555555555556 0.666666666666667 
+#1               105                 3               103                90                82 
+#0.777777777777778 0.888888888888889                 1 
+#63                34                 8
 
 # Crt scores (last 3 items in numeracy test)
 crt <- c("num7.cor", "num8.cor", "num9.cor")
